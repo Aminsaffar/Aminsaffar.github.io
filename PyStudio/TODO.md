@@ -74,3 +74,6 @@
 - [x] Provide instructions for local development and deployment on Cloudflare Pages and GitHub Pages.
 - [x] Do not provide pseudocode or incomplete placeholders. Implement and test the complete application.
 - [x] Acceptance criterion: a student can open the website, write arbitrary Python code, click Run, interact with `input()` through the integrated terminal, and see actual execution results without installing Python and without communicating with any execution backend.
+
+## Mobile installation and home-screen branding
+- [x] “I want users can add this page as a progressive application to their mobile phone. please insure that the icon and other things became good when add to phone.” Users can install PyStudio from browsers that expose a native PWA install prompt; iPhone/iPad users can follow clear Safari Share → Add to Home Screen instructions. The installed app opens in standalone display with the PyStudio name, matching theme/background colors, a polished standard and maskable home-screen icon, and an Apple touch icon. The browser shell remains a static, client-side app, and the install experience explains that the Python runtime and compatible packages are delivered from CDNs and may require network access.

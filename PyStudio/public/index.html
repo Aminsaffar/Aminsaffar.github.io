@@ -5,8 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f15">
   <meta name="description" content="A browser-based Python workspace. Write and run Python locally with Pyodide and WebAssembly.">
+  <meta name="application-name" content="PyStudio">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="PyStudio">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>PyStudio — Browser Python IDE</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
   <link rel="stylesheet" href="./css/main.css">
   <link rel="stylesheet" href="./css/editor.css">
   <link rel="stylesheet" href="./css/terminal.css">
@@ -38,6 +45,9 @@
       </div>
       <div class="topbar-actions">
         <span class="runtime-chip" id="runtimeChip" data-state="loading"><span class="runtime-dot"></span><span id="runtimeLabel">Starting Python…</span></span>
+        <button class="install-button" id="installButton" type="button" aria-label="Install PyStudio" title="Install PyStudio" hidden>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.8v9.4m0 0 3.2-3.2M10 12.2 6.8 9M4 13.5v3.2h12v-3.2"/></svg><span>Install</span>
+        </button>
         <button class="icon-button" id="helpButton" type="button" aria-label="Open help" title="Help and shortcuts">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 4.3 1.5c-.9 1.1-2 1.3-2 3M12 17.5h.01"/></svg>
         </button>
@@ -180,13 +190,31 @@
         <div class="shortcut-row"><span>Find in file</span><kbd>Ctrl / ⌘ + F</kbd></div>
         <h3>Interactive input and hosting</h3>
         <p>Python <code>input()</code> uses a shared-memory bridge between the Worker and terminal. Browsers require a secure, cross-origin-isolated page for this feature. Cloudflare Pages uses the included <code>_headers</code> file. GitHub Pages uses the local COI service worker and may reload once after its first install. Also see <code>README.md</code> for deployment and local development steps.</p>
+        <h3>Install on a phone</h3>
+        <p>Choose <strong>Install</strong> in the top bar when available. On iPhone or iPad, open this page in Safari, tap <strong>Share</strong>, then choose <strong>Add to Home Screen</strong>. The offline page is available after installation, but the editor and Python runtime load from public CDNs and may need an internet connection.</p>
         <h3>Try a sample</h3><p>Choose “Examples” above the editor for beginner programs, loops, input, and Persian text.</p>
       </div>
       <div class="modal-actions"><button class="primary-button" value="close" type="submit">Got it</button></div>
     </form>
   </dialog>
 
+  <dialog class="modal install-modal" id="installDialog" aria-labelledby="installDialogTitle">
+    <form method="dialog">
+      <div class="modal-header"><div><span class="modal-eyebrow">PYSTUDIO ON YOUR PHONE</span><h2 id="installDialogTitle">Take PyStudio with you.</h2></div><button class="icon-button" value="close" aria-label="Close install instructions" type="submit">×</button></div>
+      <div class="install-content">
+        <p id="installIntro">Add PyStudio to your device's Home Screen to open it in its own app window.</p>
+        <ol class="install-steps">
+          <li id="iosInstallStep" hidden>In Safari, tap <strong>Share</strong>, then choose <strong>Add to Home Screen</strong> and confirm with <strong>Add</strong>.</li>
+          <li id="browserInstallStep" hidden>Open your browser menu and choose <strong>Install app</strong> or <strong>Add to Home Screen</strong>.</li>
+        </ol>
+        <p class="install-network-note">Your projects stay in this browser. The editor, Python runtime, and compatible packages come from public CDNs and may require an internet connection.</p>
+      </div>
+      <div class="modal-actions"><button class="primary-button" value="close" type="submit">Got it</button></div>
+    </form>
+  </dialog>
+
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="./js/pwa.js"></script>
   <script type="module" src="./js/app.js"></script>
 </body>
 </html>

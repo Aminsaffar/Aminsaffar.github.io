@@ -14,6 +14,10 @@ Then open `http://localhost:8000`. This helper only serves HTML, CSS, JavaScript
 
 The first visit may reload once while `coi-serviceworker.js` installs isolation support. Keep that same-origin service-worker file in the published folder; do not load it from a third-party CDN. The app downloads CodeMirror and Pyodide from pinned public CDNs, so the browser needs network access on first use. Pyodide's compatible package installer downloads package files from PyPI.
 
+## Install on a phone
+
+Serve PyStudio over HTTPS (or localhost during development), then open it in a supported mobile browser. On Android, tap **Install** in the top bar when it appears, or use the browser menu and choose **Install app** / **Add to Home Screen**. On iPhone or iPad, open the page in Safari, tap **Share**, choose **Add to Home Screen**, then confirm with **Add**. The installed app uses the PyStudio launcher icon, standalone display, and matching dark theme colors. The worker caches same-origin app assets and can show an offline notice, but CodeMirror and Pyodide are loaded from public CDNs; offline opening does not guarantee that Python can run without a network connection.
+
 ## Deploy to Cloudflare Pages
 
 1. Connect the repository to Cloudflare Pages, or upload the static project files.
