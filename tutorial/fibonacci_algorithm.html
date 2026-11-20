@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="An animated, interactive Fibonacci algorithm visualizer covering iterative, recursive, memoized, tabulated, and fast-doubling approaches." />
+  <title>Fibonacci Lab — Algorithm Visualizer</title>
+  <style>
+    :root {
+      --bg: #070b17; --surface: #0e1628; --surface-2: #14203a; --surface-3: #192a49;
+      --text: #edf4ff; --muted: #91a4c5; --line: #263858; --cyan: #65d8ff;
+      --violet: #ad8cff; --mint: #6ee7b7; --amber: #ffd166; --rose: #ff7e9d;
+      --shadow: 0 22px 70px rgba(0,0,0,.32); --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--text); background: radial-gradient(circle at 12% -10%, #16355b 0, transparent 32%), radial-gradient(circle at 92% 4%, #302052 0, transparent 30%), var(--bg); font: 15px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    button, input { font: inherit; }
+    button { cursor: pointer; border: 0; }
+    .wrap { width: min(1240px, calc(100% - 32px)); margin: auto; }
+    header { padding: 64px 0 38px; text-align: center; position: relative; overflow: hidden; }
+    header::after { content: "φ"; position: absolute; right: 6%; top: -35px; color: rgba(101,216,255,.08); font-size: 240px; font-weight: 900; pointer-events: none; }
+    .eyebrow { color: var(--cyan); letter-spacing: .14em; text-transform: uppercase; font-weight: 900; font-size: .76rem; }
+    h1 { margin: 8px auto 12px; font-size: clamp(2.5rem, 6vw, 5.4rem); line-height: .98; letter-spacing: -.065em; max-width: 880px; }
+    h1 span { background: linear-gradient(100deg, var(--cyan), var(--violet)); color: transparent; background-clip: text; }
+    h2 { margin: 0 0 10px; font-size: clamp(1.35rem, 2.5vw, 2rem); letter-spacing: -.035em; }
+    h3 { margin: 0 0 7px; }
+    p { margin: 7px 0; }
+    .lede { color: var(--muted); max-width: 770px; margin: auto; font-size: 1.08rem; }
+    .panel { background: linear-gradient(145deg, rgba(255,255,255,.035), transparent 48%), var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); border-radius: var(--radius); padding: clamp(18px, 3vw, 30px); margin: 20px 0; }
+    .hero-grid, .lab-grid, .two-col { display: grid; grid-template-columns: 1.2fr .8fr; gap: 22px; align-items: stretch; }
+    .formula { margin: 20px 0; padding: 22px; border-radius: 17px; background: linear-gradient(100deg, rgba(101,216,255,.09), rgba(173,140,255,.1)); border: 1px solid #38517b; text-align: center; font-size: clamp(1.15rem, 2vw, 1.5rem); }
+    .formula code { color: var(--amber); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .sequence { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { border: 1px solid #355174; background: #142640; color: #dcedff; padding: 8px 12px; border-radius: 999px; font-weight: 800; transition: .25s; }
+    .chip:hover { transform: translateY(-4px) rotate(-2deg); border-color: var(--cyan); }
+    .card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 17px; padding: 18px; }
+    .goal-list { display: grid; gap: 9px; margin-top: 14px; }
+    .goal-list div { padding: 9px 11px; border-radius: 11px; background: rgba(255,255,255,.035); color: var(--muted); }
+    .goal-list b { color: var(--mint); margin-right: 6px; }
+    .section-kicker { color: var(--muted); margin: -2px 0 18px; }
+    .controls { display: grid; gap: 14px; align-content: start; }
+    label { color: var(--muted); display: block; font-weight: 800; font-size: .86rem; margin-bottom: 6px; }
+    input[type=number] { width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #091223; color: var(--text); outline: none; }
+    input[type=number]:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(101,216,255,.12); }
+    input[type=range] { width: 100%; accent-color: var(--cyan); }
+    .button-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
+    .btn { padding: 12px 14px; border-radius: 12px; background: linear-gradient(110deg, var(--cyan), #78aaff); color: #06101e; font-weight: 900; transition: transform .18s, filter .18s; }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.12); }
+    .btn.secondary { background: #243654; border: 1px solid #3b5277; color: var(--text); }
+    .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .status { min-height: 80px; padding: 13px; background: #091223; border: 1px solid var(--line); border-radius: 14px; }
+    .status strong { color: var(--mint); }
+    .progress { height: 7px; border-radius: 9px; background: #091223; overflow: hidden; margin-top: 13px; }
+    .progress i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--cyan), var(--violet)); transition: width .35s; }
+    .visual { display: grid; gap: 15px; }
+    .registers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .register { padding: 13px 8px; text-align: center; background: #091223; border: 1px solid var(--line); border-radius: 15px; }
+    .register .name { display: block; text-transform: uppercase; letter-spacing: .11em; font-size: .7rem; color: var(--muted); }
+    .register .value { display: block; margin-top: 2px; color: var(--cyan); font-size: 1.55rem; font-weight: 950; overflow-wrap: anywhere; }
+    .pulse { animation: pulse .55s ease; }
+    @keyframes pulse { 50% { transform: scale(1.07); color: var(--amber); } }
+    .timeline { display: flex; align-items: flex-end; gap: 8px; min-height: 245px; padding: 14px; overflow-x: auto; background: #091223; border: 1px solid var(--line); border-radius: 16px; }
+    .bar { min-width: 55px; height: 55px; border-radius: 12px 12px 6px 6px; background: linear-gradient(180deg, var(--cyan), #3970d4); border: 1px solid #6bcff0; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 7px; color: white; font-weight: 950; text-shadow: 0 1px 4px #07111e; transition: height .45s, transform .25s, filter .25s; animation: rise .45s both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    .bar.active { transform: translateY(-9px) scale(1.04); filter: brightness(1.35); outline: 3px solid rgba(255,209,102,.35); }
+    .bar small { display: block; font-size: .7rem; opacity: .83; }
+    .explain { color: var(--muted); min-height: 49px; }
+    .code { margin: 0; padding: 16px; overflow: auto; background: #060c18; border: 1px solid var(--line); border-radius: 15px; color: #d7e8ff; font: .88rem/1.8 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .code-line { display: block; border-radius: 7px; padding: 0 8px; }
+    .code-line.active { background: rgba(255,209,102,.16); color: var(--amber); }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 18px; }
+    .tab { padding: 10px 14px; border-radius: 999px; color: var(--muted); background: #0a1324; border: 1px solid var(--line); font-weight: 850; }
+    .tab.active, .tab:hover { color: #06101e; background: var(--cyan); border-color: var(--cyan); }
+    .algorithm { display: none; animation: fade .35s ease; }
+    .algorithm.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .algo-layout { display: grid; grid-template-columns: .8fr 1.2fr; gap: 18px; }
+    .metric-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(145,164,197,.15); color: var(--muted); }
+    .metric-row:last-child { border: 0; }
+    .metric-row b { color: var(--text); }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: .75rem; font-weight: 900; background: rgba(110,231,183,.13); color: var(--mint); }
+    .badge.warn { background: rgba(255,209,102,.13); color: var(--amber); }
+    .badge.danger { background: rgba(255,126,157,.13); color: var(--rose); }
+    .compare-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .compare-grid .card { padding: 15px; }
+    .tree-wrap { min-height: 310px; padding: 18px; overflow: auto; background: #091223; border: 1px solid var(--line); border-radius: 16px; }
+    .tree { display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: max-content; }
+    .tree-level { display: flex; justify-content: center; gap: 10px; }
+    .node { min-width: 70px; padding: 8px 10px; text-align: center; border: 1px solid #46648d; border-radius: 11px; background: #1a3154; font-weight: 850; animation: pop .35s both; }
+    .node.leaf { border-color: var(--mint); color: var(--mint); }
+    @keyframes pop { from { opacity: 0; transform: scale(.75); } to { opacity: 1; transform: scale(1); } }
+    .insight { border-left: 3px solid var(--violet); padding: 4px 0 4px 14px; color: var(--muted); }
+    .callout { margin-top: 14px; padding: 13px 15px; border-radius: 14px; background: rgba(101,216,255,.07); border: 1px solid rgba(101,216,255,.2); color: var(--muted); }
+    footer { color: var(--muted); text-align: center; padding: 22px 0 45px; }
+    @media (max-width: 980px) { .hero-grid, .lab-grid, .two-col, .algo-layout { grid-template-columns: 1fr; } .compare-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 570px) { .wrap { width: min(100% - 20px, 1240px); } header { padding-top: 40px; } .registers { grid-template-columns: repeat(2, 1fr); } .compare-grid { grid-template-columns: 1fr; } .button-row { grid-template-columns: 1fr 1fr; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <div class="eyebrow">Interactive computer science lab</div>
+    <h1>See Fibonacci <span>come alive.</span></h1>
+    <p class="lede">Trace every instruction, compare five implementation strategies, and watch repeated recursive work turn into efficient dynamic programming.</p>
+  </header>
+
+  <main class="wrap">
+    <section class="panel hero-grid">
+      <div>
+        <div class="eyebrow">01 · The idea</div>
+        <h2>One sequence, many algorithms</h2>
+        <p>Each Fibonacci number is built from the two values before it. The recurrence is simple; the implementation determines how much work the computer repeats.</p>
+        <div class="formula"><code>F(0) = 0</code> · <code>F(1) = 1</code><br><strong>F(n) = F(n − 1) + F(n − 2)</strong></div>
+        <div class="sequence" id="sequencePreview" aria-label="First Fibonacci values"></div>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Learning path</div>
+        <h3>From first principles to optimization</h3>
+        <div class="goal-list"><div><b>01</b> Define the base cases.</div><div><b>02</b> Follow state changes step by step.</div><div><b>03</b> Expose repeated recursive calls.</div><div><b>04</b> Reuse work with memoization.</div><div><b>05</b> Reach logarithmic time with fast doubling.</div></div>
+      </div>
+    </section>
+
+    <section class="panel" id="walkthrough">
+      <div class="eyebrow">02 · Instruction-by-instruction</div>
+      <h2>Iterative algorithm walkthrough</h2>
+      <p class="section-kicker">The visualizer pauses after each meaningful instruction so you can see the registers, generated sequence, and highlighted pseudocode move together.</p>
+      <div class="lab-grid">
+        <div class="controls">
+          <div><label for="nInput">Target n (0–40)</label><input id="nInput" type="number" min="0" max="40" value="10" /></div>
+          <div><label for="speedInput">Animation speed <span id="speedLabel">650 ms</span></label><input id="speedInput" type="range" min="150" max="1500" step="50" value="650" /></div>
+          <div class="button-row"><button class="btn" id="runBtn">Run animation</button><button class="btn secondary" id="pauseBtn">Pause</button><button class="btn secondary" id="stepBtn">Step</button><button class="btn ghost" id="resetBtn">Reset</button></div>
+          <div class="status" id="status">Ready to compute <strong>F(10)</strong>.<div class="progress"><i id="progressBar"></i></div></div>
+          <pre class="code" id="pseudoCode"><span class="code-line" data-line="1">function fibonacci(n):</span><span class="code-line" data-line="2">    if n == 0: return 0</span><span class="code-line" data-line="3">    if n == 1: return 1</span><span class="code-line" data-line="4">    previous = 0</span><span class="code-line" data-line="5">    current = 1</span><span class="code-line" data-line="6">    for i from 2 to n:</span><span class="code-line" data-line="7">        next = previous + current</span><span class="code-line" data-line="8">        previous = current</span><span class="code-line" data-line="9">        current = next</span><span class="code-line" data-line="10">    return current</span></pre>
+        </div>
+        <div class="visual">
+          <div class="registers"><div class="register"><span class="name">i</span><span class="value" id="iValue">–</span></div><div class="register"><span class="name">previous</span><span class="value" id="prevValue">0</span></div><div class="register"><span class="name">current</span><span class="value" id="currValue">1</span></div><div class="register"><span class="name">next</span><span class="value" id="nextValue">–</span></div></div>
+          <div><h3>Generated values</h3><div class="timeline" id="timeline"></div></div>
+          <div class="card"><h3>What is happening?</h3><p class="explain" id="explanation">Only the two most recent values are kept. Every loop creates one new value and shifts the window forward.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="eyebrow">03 · The algorithm family</div><h2>Compare five ways to compute F(n)</h2>
+      <p class="section-kicker">Select an approach to read its idea, complexity, and a short visual demonstration.</p>
+      <div class="tabs" role="tablist"><button class="tab active" data-tab="iterative">Iterative</button><button class="tab" data-tab="recursive">Naive recursion</button><button class="tab" data-tab="memoized">Memoized</button><button class="tab" data-tab="tabulated">Tabulation</button><button class="tab" data-tab="doubling">Fast doubling</button></div>
+      <div class="algorithm active" id="algo-iterative"><div class="algo-layout"><div class="card"><h3>Rolling window</h3><p>Start with 0 and 1. Replace the pair with <em>(current, previous + current)</em> until the target index is reached.</p><div class="metric-row"><span>Time</span><b class="badge">O(n)</b></div><div class="metric-row"><span>Extra space</span><b class="badge">O(1)</b></div><div class="metric-row"><span>Best for</span><b>Simple, large inputs</b></div></div><div class="card"><h3>Why it is efficient</h3><p class="insight">The algorithm never stores the entire history. It preserves exactly the two values needed by the recurrence, making memory usage constant.</p><div class="callout"><strong>Invariant:</strong> at the start of iteration <code>i</code>, <code>previous = F(i − 2)</code> and <code>current = F(i − 1)</code>.</div></div></div></div>
+      <div class="algorithm" id="algo-recursive"><div class="algo-layout"><div class="card"><h3>Direct translation</h3><p>For <code>n &gt; 1</code>, call the function twice: once for <code>n − 1</code> and once for <code>n − 2</code>. This mirrors the mathematical definition.</p><div class="metric-row"><span>Time</span><b class="badge danger">O(2ⁿ)</b></div><div class="metric-row"><span>Call stack</span><b class="badge warn">O(n)</b></div><div class="metric-row"><span>Main issue</span><b>Repeated subproblems</b></div></div><div class="card"><h3>The hidden cost</h3><p class="insight">Computing F(5) asks for F(4) and F(3). But F(4) asks for F(3) again, so the same work branches repeatedly.</p><button class="btn secondary" id="treeJump">Explore the recursion tree ↓</button></div></div></div>
+      <div class="algorithm" id="algo-memoized"><div class="algo-layout"><div class="card"><h3>Remember answers</h3><p>Memoization adds a cache. Before making a recursive call, check whether the answer already exists; if it does, return it immediately.</p><div class="metric-row"><span>Time</span><b class="badge">O(n)</b></div><div class="metric-row"><span>Extra space</span><b class="badge warn">O(n)</b></div><div class="metric-row"><span>Style</span><b>Top-down recursion</b></div></div><div class="card"><h3>Trade-off</h3><p class="insight">Memoization preserves the recursive shape while eliminating duplicate work. The cache costs memory, but it converts exponential time into linear time.</p></div></div></div>
+      <div class="algorithm" id="algo-tabulated"><div class="algo-layout"><div class="card"><h3>Build from the bottom</h3><p>Start with the known base cases, then fill an array from left to right until the target index is reached.</p><div class="metric-row"><span>Time</span><b class="badge">O(n)</b></div><div class="metric-row"><span>Extra space</span><b class="badge warn">O(n)</b></div><div class="metric-row"><span>Style</span><b>Bottom-up dynamic programming</b></div></div><div class="card"><h3>When it helps</h3><p class="insight">The full table gives instant access to every earlier value. That is useful when later logic needs more than just the final Fibonacci number.</p></div></div></div>
+      <div class="algorithm" id="algo-doubling"><div class="algo-layout"><div class="card"><h3>Split the problem</h3><p>Fast doubling computes a pair <code>(F(n), F(n+1))</code> using identities that halve n at each recursive level.</p><div class="metric-row"><span>Time</span><b class="badge">O(log n)</b></div><div class="metric-row"><span>Extra space</span><b class="badge warn">O(log n)</b></div><div class="metric-row"><span>Key idea</span><b>Halve the index</b></div></div><div class="card"><h3>Useful identities</h3><p class="formula" style="margin:0;font-size:1rem"><code>F(2k) = F(k)[2F(k+1) − F(k)]</code><br><code>F(2k+1) = F(k)² + F(k+1)²</code></p><p class="insight">Because the index is halved repeatedly, this is the fastest option in the family for very large n.</p></div></div></div>
+    </section>
+
+    <section class="panel two-col" id="treeSection">
+      <div><div class="eyebrow">04 · See the repetition</div><h2>Naive recursion tree</h2><p class="section-kicker">Choose a small n. Identical labels at different positions represent separate calls that recompute the same value.</p><div class="controls" style="grid-template-columns: 1fr 1fr"><div><label for="treeInput">Tree depth (0–7)</label><input id="treeInput" type="number" min="0" max="7" value="5" /></div><button class="btn" id="treeBtn" style="align-self:end">Build tree</button></div><div class="callout" id="treeStats">The tree will show the branching structure.</div></div>
+      <div class="tree-wrap"><div class="tree" id="tree"></div></div>
+    </section>
+
+    <section class="panel"><div class="eyebrow">05 · Takeaways</div><h2>What should you remember?</h2><div class="compare-grid"><div class="card"><h3>State</h3><p>Two rolling variables are enough for the iterative solution.</p></div><div class="card"><h3>Repetition</h3><p>Naive recursion solves the same smaller problems many times.</p></div><div class="card"><h3>Reuse</h3><p>Memoization and tabulation store results to avoid duplicate work.</p></div><div class="card"><h3>Scale</h3><p>Fast doubling reduces the number of levels from n to log n.</p></div><div class="card"><h3>Precision</h3><p>JavaScript numbers lose exact integer precision beyond 2⁵³ − 1; use BigInt for huge indices.</p></div></div></section>
+  </main>
+  <footer class="wrap">Fibonacci Lab · A self-contained visual lesson for classroom demonstration and self-study.</footer>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const nInput = $('nInput'), speedInput = $('speedInput'), speedLabel = $('speedLabel');
+    const timeline = $('timeline'), statusEl = $('status'), explanationEl = $('explanation'), progressBar = $('progressBar');
+    const registers = { i: $('iValue'), previous: $('prevValue'), current: $('currValue'), next: $('nextValue') };
+    const codeLines = [...document.querySelectorAll('.code-line')];
+    let steps = [], stepIndex = 0, running = false, timer = null;
+
+    function fibList(count) { const a = [0, 1]; for (let i = 2; i < count; i++) a.push(a[i - 1] + a[i - 2]); return a.slice(0, count); }
+    function fillPreview() { $('sequencePreview').innerHTML = fibList(13).map((v, i) => `<span class="chip">F${i} = ${v}</span>`).join(''); }
+    function setCode(line) { codeLines.forEach(el => el.classList.toggle('active', Number(el.dataset.line) === line)); }
+    function buildSteps(n) {
+      const s = [{ line:1, i:'–', previous:0, current:1, next:'–', values:[], message:`Start fibonacci(${n}). First, inspect the base cases.` }];
+      if (n === 0) return s.concat({ line:2, i:'–', previous:0, current:1, next:'–', values:[0], message:'n is 0, so the function returns 0 immediately.' });
+      if (n === 1) return s.concat({ line:3, i:'–', previous:0, current:1, next:'–', values:[0,1], message:'n is 1, so the function returns 1 immediately.' });
+      s.push({line:4,i:'–',previous:0,current:1,next:'–',values:[0],message:'Initialize previous = 0. This represents F(0).'});
+      s.push({line:5,i:'–',previous:0,current:1,next:'–',values:[0,1],message:'Initialize current = 1. This represents F(1).'});
+      let previous=0, current=1, values=[0,1];
+      for (let i=2;i<=n;i++) {
+        s.push({line:6,i,previous,current,next:'–',values:[...values],message:`Begin iteration i = ${i}. The pair represents F(${i-2}) and F(${i-1}).`});
+        const next=previous+current;
+        s.push({line:7,i,previous,current,next,values:[...values],message:`Add the pair: next = ${previous} + ${current} = ${next}.`});
+        previous=current;
+        s.push({line:8,i,previous,current,next,values:[...values],message:`Shift the window: previous becomes ${previous}, the old current value.`});
+        current=next; values.push(current);
+        s.push({line:9,i,previous,current,next,values:[...values],message:`Shift again: current becomes ${current}, which is F(${i}).`});
+      }
+      s.push({line:10,i:n,previous,current,next:'–',values:[...values],message:`Finished. The answer is F(${n}) = ${current}.`}); return s;
+    }
+    function renderBars(values, active=-1) { timeline.innerHTML=''; const max=Math.max(...values,1); values.forEach((v,i)=>{ const bar=document.createElement('div'); bar.className='bar'+(i===active?' active':''); bar.style.height=`${52+(v/max)*155}px`; bar.style.animationDelay=`${i*35}ms`; bar.innerHTML=`<div>${v}<small>F(${i})</small></div>`; timeline.appendChild(bar); }); timeline.scrollLeft=timeline.scrollWidth; }
+    function animateRegister(el, value) { if (el.textContent !== String(value)) { el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse'); } el.textContent=value; }
+    function renderStep(step) { setCode(step.line); animateRegister(registers.i,step.i); animateRegister(registers.previous,step.previous); animateRegister(registers.current,step.current); animateRegister(registers.next,step.next); renderBars(step.values,step.values.length-1); statusEl.innerHTML=`<strong>Step ${Math.min(stepIndex+1,steps.length)} of ${steps.length}</strong><br>${step.message}<div class="progress"><i id="progressBar" style="width:${(stepIndex/Math.max(steps.length-1,1))*100}%"></i></div>`; explanationEl.textContent=step.message; }
+    function resetAnimation() { clearTimeout(timer); running=false; stepIndex=0; const n=Math.max(0,Math.min(40,Number(nInput.value)||0)); nInput.value=n; steps=buildSteps(n); Object.values(registers).forEach((el,i)=>el.textContent=['–','0','1','–'][i]); timeline.innerHTML=''; setCode(0); statusEl.innerHTML=`Ready to compute <strong>F(${n})</strong>.<div class="progress"><i id="progressBar"></i></div>`; explanationEl.textContent='Only the two most recent values are kept. Every loop creates one new value and shifts the window forward.'; }
+    function advance() { if (stepIndex>=steps.length) { running=false; return false; } renderStep(steps[stepIndex]); stepIndex++; if(stepIndex>=steps.length) running=false; return stepIndex<steps.length; }
+    function schedule() { if(!running) return; timer=setTimeout(()=>{ if(advance()) schedule(); }, Number(speedInput.value)); }
+    $('runBtn').addEventListener('click',()=>{ if(stepIndex>=steps.length) resetAnimation(); if(!running){ running=true; if(stepIndex===0) advance(); schedule(); }});
+    $('pauseBtn').addEventListener('click',()=>{ running=false; clearTimeout(timer); statusEl.innerHTML += `<br><span style="color:var(--amber)">Paused — press Run to continue.</span>`; });
+    $('stepBtn').addEventListener('click',()=>{ running=false; clearTimeout(timer); if(stepIndex>=steps.length) resetAnimation(); advance(); });
+    $('resetBtn').addEventListener('click',resetAnimation); nInput.addEventListener('change',resetAnimation);
+    speedInput.addEventListener('input',()=>speedLabel.textContent=`${speedInput.value} ms`);
+
+    document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===tab)); document.querySelectorAll('.algorithm').forEach(a=>a.classList.toggle('active',a.id===`algo-${tab.dataset.tab}`)); }));
+    $('treeJump').addEventListener('click',()=> $('treeSection').scrollIntoView({behavior:'smooth'}));
+    function buildTreeLevels(n) { const levels=[]; let current=[n]; while(current.length){ levels.push(current); const next=[]; current.forEach(v=>{if(v>1) next.push(v-1,v-2);}); current=next; } return levels; }
+    function renderTree(){ const n=Math.max(0,Math.min(7,Number($('treeInput').value)||0)); $('treeInput').value=n; const tree=$('tree'); tree.innerHTML=''; const levels=buildTreeLevels(n); let calls=0; levels.forEach((level,li)=>{ const row=document.createElement('div'); row.className='tree-level'; level.forEach((v,ni)=>{calls++; const node=document.createElement('div'); node.className='node'+(v<=1?' leaf':''); node.textContent=`F(${v})`; node.style.animationDelay=`${(li*80)+(ni*18)}ms`; row.appendChild(node);}); tree.appendChild(row); if(li<levels.length-1){const connector=document.createElement('div'); connector.textContent='↓ recursive calls'; connector.style.color='var(--muted)'; connector.style.fontSize='.8rem'; tree.appendChild(connector);} }); $('treeStats').innerHTML=`<strong>${calls} total calls</strong> across ${levels.length} levels. Repeated labels show recomputation.`; }
+    $('treeBtn').addEventListener('click',renderTree); $('treeInput').addEventListener('change',renderTree);
+    fillPreview(); resetAnimation(); renderTree();
+  </script>
+</body>
+</html>

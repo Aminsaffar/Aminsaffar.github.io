@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0f15">
+  <meta name="description" content="A browser-based Python workspace. Write and run Python locally with Pyodide and WebAssembly.">
+  <title>PyStudio — Browser Python IDE</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/editor.css">
+  <link rel="stylesheet" href="./css/terminal.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "codemirror": "https://esm.sh/codemirror@6.0.2",
+        "@codemirror/lang-python": "https://esm.sh/@codemirror/lang-python@6.2.1"
+      }
+    }
+  </script>
+  <script>
+    // Keep COEP strict. The locally hosted service worker adds COOP/COEP headers
+    // on static hosts that do not expose response-header configuration.
+    window.coi = { coepCredentialless: () => false, quiet: true };
+  </script>
+  <script src="./coi-serviceworker.js"></script>
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="PyStudio home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 28 28"><path d="M10 6 4 14l6 8M18 6l6 8-6 8M15.8 5l-3.6 18"/></svg></span>
+        <span class="brand-name">Py<span>Studio</span></span>
+      </a>
+      <div class="topbar-center">
+        <span class="workspace-label">Browser Python IDE</span>
+        <span class="privacy-pill"><span class="privacy-dot"></span>Runs on this device</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="runtime-chip" id="runtimeChip" data-state="loading"><span class="runtime-dot"></span><span id="runtimeLabel">Starting Python…</span></span>
+        <button class="icon-button" id="helpButton" type="button" aria-label="Open help" title="Help and shortcuts">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 4.3 1.5c-.9 1.1-2 1.3-2 3M12 17.5h.01"/></svg>
+        </button>
+        <button class="icon-button" id="themeButton" type="button" aria-label="Switch to light theme" title="Switch theme">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="actionbar">
+      <div class="action-group">
+        <button class="run-button" id="runButton" type="button" title="Run Python (Ctrl+Enter)">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3.8v12.4L16 10 6 3.8Z"/></svg><span>Run</span><kbd>Ctrl ↵</kbd>
+        </button>
+        <button class="toolbar-button stop-button" id="stopButton" type="button" disabled title="Stop Python execution">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg><span>Stop</span>
+        </button>
+        <span class="toolbar-divider"></span>
+        <button class="toolbar-button" id="restartButton" type="button" title="Restart the Python runtime">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.2 8a6.4 6.4 0 0 0-11-2L3.8 7.4M3.8 4.3v3.1h3.1M3.8 12a6.4 6.4 0 0 0 11 2l1.4-1.4m0 3.1v-3.1h-3.1"/></svg><span>Restart runtime</span>
+        </button>
+      </div>
+      <div class="action-group action-group-right">
+        <button class="toolbar-button" id="saveButton" type="button" title="Save project">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3.5h10l2.5 2.6v10.4h-13V3.5Z"/><path d="M7 3.5v5h6v-5M7 16.5v-5h6v5"/></svg><span>Save</span>
+        </button>
+        <button class="toolbar-button" id="downloadButton" type="button" title="Download current Python file">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0 3.2-3.2M10 12 6.8 8.8M4 13.5v3h12v-3"/></svg><span>Download .py</span>
+        </button>
+        <button class="toolbar-button package-button" id="packageButton" type="button" title="Install a Pyodide-compatible Python package">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2.8 6.2 3.6v7.2L10 17.2l-6.2-3.6V6.4L10 2.8Z"/><path d="M10 10v7m6.2-10.6L10 10 3.8 6.4"/></svg><span>Packages</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="isolation-banner" id="isolationBanner" role="status" hidden>
+      <span class="banner-icon" aria-hidden="true">!</span>
+      <div><strong>Interactive input needs cross-origin isolation.</strong> Serve this site over HTTPS or localhost and allow its COI service worker to reload once. See the deployment notes in the Help panel.</div>
+      <button id="dismissIsolation" type="button" aria-label="Dismiss notice">×</button>
+    </div>
+
+    <main class="workspace" id="workspace">
+      <aside class="sidebar" id="sidebar" aria-label="Project files">
+        <div class="sidebar-heading"><span>Explorer</span><button class="icon-button small" id="collapseSidebar" type="button" aria-label="Collapse file explorer" title="Collapse explorer"><svg viewBox="0 0 20 20"><path d="m12.5 4.5-5 5 5 5"/></svg></button></div>
+        <div class="project-row">
+          <label class="sr-only" for="projectSelect">Current project</label>
+          <select id="projectSelect" aria-label="Current project"></select>
+          <button class="icon-button small" id="newProjectButton" type="button" title="Create project" aria-label="Create project"><svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12"/></svg></button>
+        </div>
+        <div class="file-actions">
+          <span class="file-heading">FILES</span>
+          <div class="file-action-buttons">
+            <button class="icon-button small" id="newFileButton" type="button" title="New Python file" aria-label="New Python file"><svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12"/></svg></button>
+            <button class="icon-button small" id="importFileButton" type="button" title="Import .py file" aria-label="Import Python file"><svg viewBox="0 0 20 20"><path d="M10 13V4m0 0L6.8 7.2M10 4l3.2 3.2M4 13.5v2.8h12v-2.8"/></svg></button>
+            <input id="fileImportInput" type="file" accept=".py,text/x-python,text/plain" hidden>
+          </div>
+        </div>
+        <nav class="file-list" id="fileList" aria-label="Python files"></nav>
+        <div class="sidebar-footer"><span class="storage-icon" aria-hidden="true">▣</span><span>Saved in this browser</span></div>
+      </aside>
+
+      <section class="main-column" aria-label="Python workspace">
+        <div class="mobile-tabs" role="tablist" aria-label="Workspace view">
+          <button class="mobile-tab active" id="mobileEditorTab" type="button" role="tab" aria-selected="true">Editor</button>
+          <button class="mobile-tab" id="mobileTerminalTab" type="button" role="tab" aria-selected="false">Terminal <span class="mobile-status-dot" id="mobileStatusDot"></span></button>
+        </div>
+        <div class="panels" id="panels">
+          <section class="editor-panel" id="editorPanel" aria-label="Code editor">
+            <div class="editor-tabbar" id="editorTabs" role="tablist" aria-label="Open Python files"></div>
+            <div class="editor-toolbar">
+              <div class="breadcrumb"><span class="breadcrumb-muted" id="breadcrumbProject">My Project</span><span class="breadcrumb-separator">/</span><span id="breadcrumbFile">main.py</span></div>
+              <div class="editor-toolbar-right"><select id="examplesSelect" aria-label="Load an example program"><option value="">Examples</option></select><span class="save-indicator" id="saveIndicator">All changes saved</span></div>
+            </div>
+            <div class="editor-host" id="editorHost" aria-label="Python source code"></div>
+            <div class="editor-statusbar"><span><span class="status-language-dot"></span>Python</span><span id="cursorPosition">Ln 1, Col 1</span><span class="editor-status-right"><span id="indentStatus">Spaces: 4</span><span>UTF-8</span></span></div>
+          </section>
+          <div class="panel-resizer" id="panelResizer" role="separator" aria-label="Resize editor and terminal" aria-orientation="horizontal" tabindex="0"></div>
+          <section class="terminal-panel" id="terminalPanel" aria-label="Integrated terminal">
+            <div class="terminal-toolbar">
+              <div class="terminal-title"><span class="terminal-title-indicator"></span><span>TERMINAL</span><span class="terminal-session-label">Python session</span></div>
+              <div class="terminal-controls">
+                <span class="execution-time" id="executionTime"></span>
+                <button class="icon-button small" id="clearTerminalButton" type="button" title="Clear terminal" aria-label="Clear terminal"><svg viewBox="0 0 20 20"><path d="M4 6h12M7 6V4h6v2m-7 0 1 10h6l1-10m-5 2v6m3-6v6"/></svg></button>
+                <button class="icon-button small" id="copyTerminalButton" type="button" title="Copy terminal output" aria-label="Copy output"><svg viewBox="0 0 20 20"><rect x="7" y="5" width="9" height="11" rx="1.5"/><path d="M13 5V3.5H4.5v10H7"/></svg></button>
+                <button class="icon-button small" id="downloadTerminalButton" type="button" title="Download terminal output" aria-label="Download output"><svg viewBox="0 0 20 20"><path d="M10 3v9m0 0 3-3m-3 3L7 9m-3 4.5v3h12v-3"/></svg></button>
+              </div>
+            </div>
+            <div class="terminal-status-row"><span class="terminal-status-dot" id="terminalStatusDot"></span><span id="terminalStatus">Runtime starting</span><span class="terminal-runtime-note" id="terminalRuntimeNote">Pyodide · WebAssembly</span></div>
+            <div class="terminal-output" id="terminalOutput" role="log" aria-live="polite" aria-relevant="additions text" tabindex="0">
+              <div class="terminal-welcome" id="terminalWelcome"><span class="welcome-mark">›_</span><div><strong>Your Python terminal is ready when the runtime loads.</strong><p>Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run the current file. Use <code>input()</code> to talk to your program.</p></div></div>
+            </div>
+            <div class="terminal-footer"><span class="terminal-cwd" id="terminalCwd">~/project</span><span class="terminal-footer-hint">Enter submits · ↑ history</span></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"><span id="footerMessage">Python executes locally in your browser.</span><span class="footer-right"><span id="savedAt">Ready</span><span class="footer-divider">·</span><span>IndexedDB</span></span></footer>
+  </div>
+
+  <dialog class="modal" id="projectDialog" aria-labelledby="projectDialogTitle">
+    <form method="dialog" id="projectForm">
+      <div class="modal-header"><div><span class="modal-eyebrow">WORKSPACE</span><h2 id="projectDialogTitle">Create a project</h2></div><button class="icon-button" value="cancel" aria-label="Close dialog" type="submit">×</button></div>
+      <label class="field-label" for="projectNameInput">Project name</label>
+      <input class="text-field" id="projectNameInput" maxlength="40" required placeholder="e.g. First steps">
+      <p class="field-hint">A new project starts with a small interactive Python example.</p>
+      <div class="modal-actions"><button class="secondary-button" value="cancel" type="submit">Cancel</button><button class="primary-button" id="createProjectConfirm" value="default" type="submit">Create project</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="fileDialog" aria-labelledby="fileDialogTitle">
+    <form method="dialog" id="fileForm">
+      <div class="modal-header"><div><span class="modal-eyebrow">PYTHON FILE</span><h2 id="fileDialogTitle">New file</h2></div><button class="icon-button" value="cancel" aria-label="Close dialog" type="submit">×</button></div>
+      <label class="field-label" for="fileNameInput">File name</label>
+      <input class="text-field" id="fileNameInput" maxlength="64" required placeholder="lesson.py">
+      <p class="field-hint">Files use the <code>.py</code> extension.</p>
+      <div class="modal-actions"><button class="secondary-button" value="cancel" type="submit">Cancel</button><button class="primary-button" id="fileConfirm" value="default" type="submit">Create file</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="packageDialog" aria-labelledby="packageDialogTitle">
+    <form method="dialog" id="packageForm">
+      <div class="modal-header"><div><span class="modal-eyebrow">PYODIDE PACKAGES</span><h2 id="packageDialogTitle">Install a package</h2></div><button class="icon-button" value="cancel" aria-label="Close dialog" type="submit">×</button></div>
+      <label class="field-label" for="packageNameInput">Package name</label>
+      <input class="text-field" id="packageNameInput" maxlength="100" required placeholder="e.g. matplotlib">
+      <p class="field-hint">Only pure Python or WebAssembly-compatible packages can install. Package files are downloaded from PyPI into the browser runtime.</p>
+      <div class="modal-actions"><button class="secondary-button" value="cancel" type="submit">Cancel</button><button class="primary-button" id="installPackageConfirm" value="default" type="submit">Install package</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal help-modal" id="helpDialog" aria-labelledby="helpTitle">
+    <form method="dialog">
+      <div class="modal-header"><div><span class="modal-eyebrow">QUICK GUIDE</span><h2 id="helpTitle">A real Python runtime, right here.</h2></div><button class="icon-button" value="close" aria-label="Close help" type="submit">×</button></div>
+      <div class="help-content">
+        <p>PyStudio runs Python with Pyodide and WebAssembly in a dedicated browser worker. Your code and projects stay in this browser; running Python does not call an execution backend.</p>
+        <div class="help-callout"><strong>Only run code you trust.</strong><span>Browser execution is isolated from the page UI, but it is not a complete security sandbox. Code can use CPU and memory and may access network-capable Python APIs.</span></div>
+        <h3>Keyboard shortcuts</h3>
+        <div class="shortcut-row"><span>Run current file</span><kbd>Ctrl / ⌘ + Enter</kbd></div>
+        <div class="shortcut-row"><span>Indent selection</span><kbd>Tab</kbd></div>
+        <div class="shortcut-row"><span>Find in file</span><kbd>Ctrl / ⌘ + F</kbd></div>
+        <h3>Interactive input and hosting</h3>
+        <p>Python <code>input()</code> uses a shared-memory bridge between the Worker and terminal. Browsers require a secure, cross-origin-isolated page for this feature. Cloudflare Pages uses the included <code>_headers</code> file. GitHub Pages uses the local COI service worker and may reload once after its first install. Also see <code>README.md</code> for deployment and local development steps.</p>
+        <h3>Try a sample</h3><p>Choose “Examples” above the editor for beginner programs, loops, input, and Persian text.</p>
+      </div>
+      <div class="modal-actions"><button class="primary-button" value="close" type="submit">Got it</button></div>
+    </form>
+  </dialog>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

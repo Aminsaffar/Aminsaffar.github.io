@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Exception Handling — Complete Guide</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a2e;--panel2:#18233b;--text:#e8eefc;--muted:#aab7d0;--accent:#7c9cff;--green:#55d6a5;--yellow:#ffd166;--red:#ff7b8b;--border:#293653;--code:#080d19}
+[data-theme="light"]{--bg:#f4f6fb;--panel:#fff;--panel2:#edf1fa;--text:#182238;--muted:#52617a;--accent:#365edb;--green:#087f5b;--yellow:#986500;--red:#c02d45;--border:#d7deeb;--code:#111827}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:54px 22px 38px;background:linear-gradient(135deg,#18264a,#11182d 65%,#173d4b);color:#fff}
+header .wrap,main{max-width:1180px;margin:auto}h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.12;margin:0 0 14px}header p{max-width:820px;color:#d8e2ff;font-size:1.1rem}
+.badges{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}.badge{border:1px solid #ffffff45;border-radius:999px;padding:5px 12px;font-size:.85rem}
+main{padding:26px 20px 80px;display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px}
+nav{position:sticky;top:16px;align-self:start;max-height:calc(100vh - 32px);overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px}
+nav strong{display:block;margin-bottom:10px}nav a{display:block;color:var(--muted);text-decoration:none;padding:5px 8px;border-radius:7px;font-size:.9rem}nav a:hover{background:var(--panel2);color:var(--text)}
+article{min-width:0}.section{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:25px;margin:0 0 22px;scroll-margin-top:18px}
+h2{font-size:1.65rem;margin:0 0 14px}h3{font-size:1.15rem;margin:24px 0 8px}p{margin:10px 0}li{margin:6px 0}.muted{color:var(--muted)}.callout{padding:14px 16px;border-left:4px solid var(--accent);background:var(--panel2);border-radius:8px;margin:16px 0}.warning{border-color:var(--yellow)}.good{border-color:var(--green)}.danger{border-color:var(--red)}
+pre{background:var(--code);color:#e7edff;padding:18px;border-radius:11px;overflow:auto;font: .9rem/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;position:relative;margin:12px 0}
+code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}p code,li code,td code{background:var(--panel2);padding:2px 5px;border-radius:5px}
+.codehead{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.82rem;margin-top:14px}.actions{display:flex;gap:8px;flex-wrap:wrap}
+button{background:var(--accent);color:white;border:0;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600}button.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border)}button:hover{filter:brightness(1.1)}
+.output{background:var(--code);color:var(--green);padding:12px;border-radius:8px;white-space:pre-wrap;min-height:36px;font: .88rem/1.5 ui-monospace,monospace;margin-top:8px}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.94rem}th,td{padding:10px;border:1px solid var(--border);text-align:left;vertical-align:top}th{background:var(--panel2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.tile{background:var(--panel2);padding:14px;border-radius:10px}
+.quiz{border:1px solid var(--border);border-radius:10px;padding:15px;margin:14px 0}.quiz label{display:block;margin:8px 0;cursor:pointer}.feedback{font-weight:600;margin-top:8px}
+.progress{height:7px;background:var(--panel2);border-radius:9px;overflow:hidden;margin:10px 0}.progress span{display:block;height:100%;width:0;background:var(--green);transition:width .2s}
+footer{text-align:center;color:var(--muted);padding:25px}
+@media(max-width:850px){main{grid-template-columns:1fr}nav{position:relative;top:auto;max-height:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}nav strong{grid-column:1/-1}}
+@media(max-width:520px){.section{padding:18px}nav{grid-template-columns:1fr}header{padding-top:38px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>Python Exception Handling</h1>
+<p>A practical, example-driven guide to understanding errors, handling invalid input, choosing the right exception, raising your own exceptions, and writing reliable Python programs.</p>
+<div class="badges"><span class="badge">Beginner → Advanced</span><span class="badge">Runnable examples</span><span class="badge">try / except / else / finally</span><span class="badge">Custom exceptions</span></div>
+</div></header>
+<main>
+<nav aria-label="Table of contents"><strong>Contents</strong>
+<a href="#basics">1. Errors and exceptions</a><a href="#flow">2. Exception flow</a><a href="#example">3. Your example explained</a><a href="#multiple">4. Multiple except blocks</a><a href="#else-finally">5. else and finally</a><a href="#raise">6. raise</a><a href="#custom">7. Custom exceptions</a><a href="#hierarchy">8. Exception hierarchy</a><a href="#traceback">9. Tracebacks</a><a href="#best">10. Best practices</a><a href="#advanced">11. Advanced patterns</a><a href="#debug">12. Common mistakes</a><a href="#practice">13. Practice exercises</a><a href="#quiz">14. Knowledge check</a>
+<div class="progress"><span id="progress"></span></div><small class="muted" id="progressText">0% explored</small>
+</nav>
+<article>
+<section class="section" id="basics">
+<h2>1. What are errors and exceptions?</h2>
+<p>An <strong>exception</strong> is an object Python creates when something goes wrong while a program is running. If the exception is not handled, the current operation stops and the program usually terminates with a traceback.</p>
+<div class="grid">
+<div class="tile"><strong>Syntax error</strong><p class="muted">The code cannot be parsed.</p><pre>if True
+    print("Hi")</pre></div>
+<div class="tile"><strong>Runtime exception</strong><p class="muted">The code is valid, but an operation fails at runtime.</p><pre>result = 10 / 0</pre></div>
+<div class="tile"><strong>Logic error</strong><p class="muted">The program runs but produces the wrong result.</p><pre>average = total / 2  # Wrong divisor?</pre></div>
+</div>
+<p>Exception handling lets you respond to expected failures instead of allowing them to crash the program.</p>
+<div class="callout good"><strong>Key idea:</strong> use exceptions for exceptional situations and recoverable failures. Do not use them to hide bugs or replace ordinary control flow unnecessarily.</div>
+</section>
+
+<section class="section" id="flow">
+<h2>2. The basic structure and execution flow</h2>
+<pre>try:
+    # Code that might raise an exception
+    risky_operation()
+except SomeException:
+    # Recovery or error handling
+    handle_problem()</pre>
+<p>Python executes the <code>try</code> block from top to bottom. If no exception occurs, it skips all matching <code>except</code> blocks. If an exception occurs, Python searches for the first compatible handler.</p>
+<ol><li>Run statements inside <code>try</code>.</li><li>When an exception occurs, stop executing the remaining statements in that <code>try</code> block.</li><li>Find the first matching <code>except</code>.</li><li>Run that handler, then continue after the complete try/except structure.</li></ol>
+<div class="codehead"><span>Try it: division with recovery</span><button onclick="runCode('demo1')">Run example</button></div>
+<pre id="demo1">try:
+    number = int("25")
+    result = 100 / number
+    print(result)
+except ValueError:
+    print("Please enter a valid integer.")
+except ZeroDivisionError:
+    print("The number cannot be zero.")
+
+print("Program continues.")</pre><div class="output" id="out-demo1">Click Run example.</div>
+</section>
+
+<section class="section" id="example">
+<h2>3. Your example, explained line by line</h2>
+<p>Your code demonstrates three different failures: invalid integer conversion, division by zero, and an operation that is invalid for an integer.</p>
+<pre>a = input("Please enter a: ")
+
+try:
+    a = int(a)
+    b = 100 / a
+    print(b)
+    # a = []
+    a[10] = 0
+except ValueError as v_error:
+    print(v_error)
+    print("Invalid value")
+except ZeroDivisionError:
+    print("a should not be zero")
+except Exception as exception:
+    print(exception)
+    print("An exception happened")</pre>
+<h3>What happens for different inputs?</h3>
+<table><tr><th>Input</th><th>What happens</th><th>Handler</th></tr>
+<tr><td><code>abc</code></td><td><code>int("abc")</code> raises ValueError.</td><td>ValueError handler</td></tr>
+<tr><td><code>0</code></td><td><code>100 / 0</code> raises ZeroDivisionError.</td><td>ZeroDivisionError handler</td></tr>
+<tr><td><code>4</code></td><td>Prints 25.0, then <code>4[10] = 0</code> raises TypeError.</td><td>Generic Exception handler</td></tr>
+</table>
+<div class="callout warning"><strong>Important:</strong> after <code>a = int(a)</code>, <code>a</code> is an integer. Integers do not support item assignment. Therefore <code>a[10] = 0</code> raises a <code>TypeError</code>, not an <code>IndexError</code>. If <code>a</code> were a list, an out-of-range index assignment would raise <code>IndexError</code>.</div>
+<h3>A clearer corrected version</h3>
+<pre>user_input = input("Please enter a: ")
+
+try:
+    number = int(user_input)
+    result = 100 / number
+    print(result)
+
+except ValueError as error:
+    print(f"Invalid integer: {error}")
+
+except ZeroDivisionError:
+    print("The number must not be zero.")
+
+except TypeError as error:
+    print(f"Invalid operation: {error}")
+
+except Exception as error:
+    print(f"Unexpected error: {error}")</pre>
+<p>In this version, the variable names communicate their roles. The broad handler is retained as a final safety net, but expected errors have their own specific handlers.</p>
+<div class="codehead"><span>Interactive: test your input</span><button onclick="runInputDemo()">Run</button></div>
+<div class="tile"><label for="userNumber">Enter a value</label><input id="userNumber" value="4" style="padding:9px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%;margin-top:5px"></div>
+<div class="output" id="out-input">Try values such as abc, 0, or 4.</div>
+</section>
+
+<section class="section" id="multiple">
+<h2>4. Multiple except blocks and exception variables</h2>
+<p>You can write several <code>except</code> blocks to handle different failure types. Only the first matching handler runs.</p>
+<pre>try:
+    value = int(input("Number: "))
+    print(50 / value)
+except ValueError as error:
+    print("The input was not an integer:", error)
+except ZeroDivisionError:
+    print("Cannot divide by zero.")
+except TypeError as error:
+    print("Wrong data type:", error)</pre>
+<p><code>as error</code> assigns the caught exception object to a variable. You can print it, inspect its type, or log it.</p>
+<pre>except ValueError as error:
+    print(type(error).__name__)
+    print(str(error))
+    print(repr(error))</pre>
+<h3>Handle several exception types together</h3>
+<p>If the recovery action is identical, group exception classes in a tuple:</p>
+<pre>try:
+    number = int("not a number")
+except (ValueError, TypeError) as error:
+    print(f"Input conversion failed: {error}")</pre>
+<div class="callout"><strong>Order matters:</strong> put more specific exception classes before broader parent classes. A broad handler placed first can make later handlers unreachable.</div>
+</section>
+
+<section class="section" id="else-finally">
+<h2>5. else and finally</h2>
+<p>Python supports two optional clauses in addition to <code>try</code> and <code>except</code>.</p>
+<div class="grid"><div class="tile"><strong><code>else</code></strong><p>Runs only if the <code>try</code> block completes without raising an exception.</p></div><div class="tile"><strong><code>finally</code></strong><p>Runs whether an exception happened or not, typically for cleanup.</p></div></div>
+<pre>try:
+    number = int("20")
+except ValueError:
+    print("Conversion failed.")
+else:
+    print("Conversion succeeded:", number)
+finally:
+    print("This message always runs.")</pre>
+<h3>Why use else?</h3>
+<p>Keep the statements that depend on successful execution in <code>else</code>. This avoids accidentally catching exceptions raised by code that is not part of the operation you intended to protect.</p>
+<pre>try:
+    number = int(user_text)
+except ValueError:
+    print("Please enter an integer.")
+else:
+    # This code runs only after successful conversion.
+    print(100 / number)</pre>
+<p>Notice that a <code>ZeroDivisionError</code> in the <code>else</code> block is not caught by the <code>except</code> clauses belonging to that same try statement.</p>
+<h3>finally for cleanup</h3>
+<pre>file = None
+try:
+    file = open("notes.txt", "w", encoding="utf-8")
+    file.write("Hello")
+except OSError as error:
+    print("File operation failed:", error)
+finally:
+    if file is not None:
+        file.close()</pre>
+<div class="callout good">For files, prefer <code>with open(...)</code>. A context manager closes the file automatically, even if an exception occurs.</div>
+<pre>with open("notes.txt", "w", encoding="utf-8") as file:
+    file.write("Hello")</pre>
+</section>
+
+<section class="section" id="raise">
+<h2>6. Raising exceptions with raise</h2>
+<p><code>raise</code> lets your code report that an operation cannot be completed. You should raise a meaningful exception when an input or state violates the function's requirements.</p>
+<pre>age = -5
+
+if age < 0:
+    raise ValueError("Age cannot be negative.")</pre>
+<h3>Validate function arguments</h3>
+<pre>def calculate_discount(price: float, percent: float) -> float:
+    """Calculate a discounted price after validating the inputs."""
+    if price < 0:
+        raise ValueError("Price cannot be negative.")
+    if not 0 <= percent <= 100:
+        raise ValueError("Percent must be between 0 and 100.")
+    return price * (1 - percent / 100)</pre>
+<h3>Re-raise an exception</h3>
+<p>Inside an <code>except</code> block, bare <code>raise</code> raises the same exception again, preserving its traceback.</p>
+<pre>try:
+    result = 10 / 0
+except ZeroDivisionError:
+    print("Logging the failure...")
+    raise</pre>
+<p>Use <code>raise SomeException("message")</code> to create a new exception, and bare <code>raise</code> when re-raising the current one.</p>
+</section>
+
+<section class="section" id="custom">
+<h2>7. Creating custom exceptions</h2>
+<p>Custom exceptions make your program's error conditions clear and meaningful. Define them by inheriting from <code>Exception</code> or one of its subclasses.</p>
+<pre>class InsufficientBalanceError(Exception):
+    """Raised when an account lacks the requested funds."""
+
+
+def withdraw(balance: float, amount: float) -> float:
+    """Withdraw money and return the remaining balance."""
+    if amount <= 0:
+        raise ValueError("Withdrawal amount must be positive.")
+    if amount > balance:
+        raise InsufficientBalanceError("Not enough money.")
+    return balance - amount
+
+
+try:
+    remaining = withdraw(100, 150)
+except InsufficientBalanceError as error:
+    print(error)</pre>
+<h3>Custom exceptions with extra information</h3>
+<pre>class InvalidProductError(Exception):
+    """Raised when a product identifier is invalid."""
+
+    def __init__(self, product_id: int) -> None:
+        self.product_id = product_id
+        super().__init__(f"Unknown product ID: {product_id}")</pre>
+<p>Keep custom exception classes focused. In most applications, a descriptive class name and message are enough; add attributes only when callers need structured details.</p>
+</section>
+
+<section class="section" id="hierarchy">
+<h2>8. Python's exception hierarchy</h2>
+<p>Exceptions are organized into inheritance trees. A handler for a parent class also catches instances of its subclasses.</p>
+<pre>BaseException
+├── SystemExit
+├── KeyboardInterrupt
+├── GeneratorExit
+└── Exception
+    ├── ArithmeticError
+    │   ├── ZeroDivisionError
+    │   ├── OverflowError
+    │   └── FloatingPointError
+    ├── AssertionError
+    ├── AttributeError
+    ├── ImportError
+    ├── LookupError
+    │   ├── IndexError
+    │   └── KeyError
+    ├── OSError
+    ├── RuntimeError
+    ├── TypeError
+    └── ValueError</pre>
+<table><tr><th>Exception</th><th>Typical cause</th><th>Example</th></tr>
+<tr><td><code>ValueError</code></td><td>Correct type, unacceptable value</td><td><code>int("hello")</code></td></tr>
+<tr><td><code>TypeError</code></td><td>Operation or function used with an incompatible type</td><td><code>"5" + 2</code></td></tr>
+<tr><td><code>ZeroDivisionError</code></td><td>Division by zero</td><td><code>10 / 0</code></td></tr>
+<tr><td><code>IndexError</code></td><td>Sequence index is out of range</td><td><code>[1, 2][5]</code></td></tr>
+<tr><td><code>KeyError</code></td><td>Dictionary key is missing</td><td><code>{"x": 1}["y"]</code></td></tr>
+<tr><td><code>AttributeError</code></td><td>Attribute does not exist</td><td><code>None.upper()</code></td></tr>
+<tr><td><code>FileNotFoundError</code></td><td>Requested file does not exist</td><td><code>open("missing.txt")</code></td></tr>
+<tr><td><code>ImportError</code></td><td>Import cannot be completed</td><td>Missing imported name</td></tr></table>
+<div class="callout warning"><strong>Usually catch <code>Exception</code>, not <code>BaseException</code>.</strong> SystemExit and KeyboardInterrupt inherit directly from BaseException, not Exception. Catching BaseException can interfere with normal program termination and Ctrl+C.</div>
+</section>
+
+<section class="section" id="traceback">
+<h2>9. Understanding tracebacks</h2>
+<p>A traceback is Python's report of the call stack when an exception is unhandled. Read it from the bottom upward:</p>
+<ul><li>The last line gives the exception type and message.</li><li>The lines above show the sequence of function calls.</li><li>The most relevant final frame usually points to the line where the exception was raised.</li></ul>
+<pre>Traceback (most recent call last):
+  File "app.py", line 8, in &lt;module&gt;
+    calculate()
+  File "app.py", line 4, in calculate
+    return 10 / 0
+ZeroDivisionError: division by zero</pre>
+<p>To inspect or log an exception with its traceback:</p>
+<pre>import logging
+
+try:
+    result = 10 / 0
+except ZeroDivisionError:
+    logging.exception("Could not calculate the result.")</pre>
+<p><code>logging.exception()</code> should be called from an exception handler. It includes traceback information automatically.</p>
+</section>
+
+<section class="section" id="best">
+<h2>10. Best practices</h2>
+<div class="grid">
+<div class="tile"><strong>Catch specific exceptions</strong><p class="muted">Handle ValueError, OSError, and other expected errors explicitly.</p></div>
+<div class="tile"><strong>Keep try blocks small</strong><p class="muted">Protect only the statements that can fail in the way you intend to handle.</p></div>
+<div class="tile"><strong>Do not hide errors</strong><p class="muted">Avoid empty handlers such as <code>except: pass</code>.</p></div>
+<div class="tile"><strong>Give useful messages</strong><p class="muted">Explain what failed and, when appropriate, how to fix it.</p></div>
+<div class="tile"><strong>Clean up resources</strong><p class="muted">Prefer context managers such as <code>with open(...)</code>.</p></div>
+<div class="tile"><strong>Do not overuse exceptions</strong><p class="muted">Use normal conditions for ordinary choices and expected branching.</p></div>
+</div>
+<h3>A robust input loop</h3>
+<pre>while True:
+    user_text = input("Enter a positive integer: ")
+
+    try:
+        number = int(user_text)
+        if number <= 0:
+            raise ValueError("The number must be positive.")
+    except ValueError as error:
+        print(f"Invalid input: {error}")
+    else:
+        print("Accepted:", number)
+        break</pre>
+<h3>Exception chaining</h3>
+<p>When translating a low-level error into a higher-level one, use <code>raise ... from error</code> to preserve the original cause.</p>
+<pre>def load_configuration(path: str) -> str:
+    """Read configuration text and translate file errors."""
+    try:
+        with open(path, encoding="utf-8") as file:
+            return file.read()
+    except OSError as error:
+        raise RuntimeError("Could not load configuration.") from error</pre>
+</section>
+
+<section class="section" id="advanced">
+<h2>11. Advanced patterns</h2>
+<h3>Exception groups (Python 3.11+)</h3>
+<p>When concurrent or grouped operations produce several independent failures, Python 3.11 introduced <code>ExceptionGroup</code> and <code>except*</code>.</p>
+<pre>try:
+    raise ExceptionGroup(
+        "Several tasks failed",
+        [ValueError("bad value"), TypeError("wrong type")]
+    )
+except* ValueError as group:
+    print("Value-related failures:", group)
+except* TypeError as group:
+    print("Type-related failures:", group)</pre>
+<h3>Assertions are not input validation</h3>
+<p><code>assert</code> is intended for debugging assumptions during development. Python can disable assertions with optimization, so do not use them to validate user input or security-sensitive conditions.</p>
+<pre>assert internal_count >= 0  # Development invariant
+
+if user_age < 0:
+    raise ValueError("Age cannot be negative.")</pre>
+<h3>When to use EAFP and LBYL</h3>
+<p><strong>EAFP</strong> means “Easier to Ask Forgiveness than Permission”: try the operation and handle the exception. <strong>LBYL</strong> means “Look Before You Leap”: check conditions before the operation.</p>
+<pre># EAFP
+try:
+    value = settings["theme"]
+except KeyError:
+    value = "default"
+
+# LBYL
+if "theme" in settings:
+    value = settings["theme"]
+else:
+    value = "default"</pre>
+<p>Both can be appropriate. Prefer the approach that is clearest and handles race conditions correctly for the situation.</p>
+</section>
+
+<section class="section" id="debug">
+<h2>12. Common mistakes</h2>
+<table><tr><th>Mistake</th><th>Why it is a problem</th><th>Better approach</th></tr>
+<tr><td><code>except:</code></td><td>Catches even termination signals such as KeyboardInterrupt.</td><td>Catch a specific exception or <code>Exception</code>.</td></tr>
+<tr><td><code>except Exception:</code> first</td><td>Swallows more specific cases before they can be handled.</td><td>Put broad handlers last.</td></tr>
+<tr><td><code>try</code> around a whole program</td><td>Makes it unclear which operation failed.</td><td>Use narrow try blocks.</td></tr>
+<tr><td><code>except ValueError: pass</code></td><td>Silently discards a failure.</td><td>Recover, report, or re-raise.</td></tr>
+<tr><td>Using <code>assert</code> for user input</td><td>Assertions may be disabled.</td><td>Use if checks and raise ValueError.</td></tr>
+<tr><td>Returning from finally</td><td>Can suppress an exception or override a return value.</td><td>Avoid return/break/continue in finally.</td></tr></table>
+<div class="callout danger"><strong>Do not do this:</strong><pre>try:
+    do_something()
+except Exception:
+    pass</pre>This hides the cause and makes debugging difficult.</div>
+</section>
+
+<section class="section" id="practice">
+<h2>13. Practice exercises</h2>
+<p>Try solving these without looking at the suggested approach first.</p>
+<h3>Exercise 1 — Safe division</h3>
+<p>Ask for two numbers. Convert both to floats, divide the first by the second, and handle invalid input and division by zero separately.</p>
+<details><summary>Show one solution</summary><pre>try:
+    numerator = float(input("Numerator: "))
+    denominator = float(input("Denominator: "))
+    result = numerator / denominator
+except ValueError:
+    print("Please enter valid numbers.")
+except ZeroDivisionError:
+    print("The denominator cannot be zero.")
+else:
+    print("Result:", result)</pre></details>
+<h3>Exercise 2 — List index</h3>
+<p>Ask for an index and print the corresponding item from a list. Handle invalid integer input and an index outside the list.</p>
+<details><summary>Show one solution</summary><pre>items = ["red", "green", "blue"]
+
+try:
+    index = int(input("Index: "))
+    print(items[index])
+except ValueError:
+    print("The index must be an integer.")
+except IndexError:
+    print("That index does not exist.")</pre></details>
+<h3>Exercise 3 — Bank account</h3>
+<p>Create an <code>InsufficientBalanceError</code> exception and a withdrawal function. Reject negative or zero amounts and reject withdrawals larger than the balance.</p>
+<details><summary>Show one solution</summary><pre>class InsufficientBalanceError(Exception):
+    """Raised when a withdrawal exceeds the account balance."""
+
+
+def withdraw(balance: float, amount: float) -> float:
+    """Return the balance after a valid withdrawal."""
+    if amount <= 0:
+        raise ValueError("Amount must be positive.")
+    if amount > balance:
+        raise InsufficientBalanceError("Insufficient balance.")
+    return balance - amount</pre></details>
+</section>
+
+<section class="section" id="quiz">
+<h2>14. Knowledge check</h2>
+<p class="muted">Choose an answer for each question, then check your results.</p>
+<div id="questions"></div><button onclick="checkQuiz()">Check answers</button><span id="quizScore" style="margin-left:12px;font-weight:700"></span>
+</section>
+</article>
+</main>
+<footer>Python Exception Handling Guide · Examples are designed for Python 3.</footer>
+<script>
+const examples = {
+ demo1: `try:
+    number = int("25")
+    result = 100 / number
+    print(result)
+except ValueError:
+    print("Please enter a valid integer.")
+except ZeroDivisionError:
+    print("The number cannot be zero.")
+
+print("Program continues.")`
+};
+function runCode(id){
+ const code=examples[id];
+ const out=document.getElementById("out-"+id);
+ if(!code || !out)return;
+ // This local teaching page uses a small demonstration runner for the fixed example.
+ if(id==="demo1") out.textContent="4.0\\nProgram continues.";
+}
+function runInputDemo(){
+ const raw=document.getElementById("userNumber").value;
+ const out=document.getElementById("out-input");
+ try{
+   const number=Number(raw);
+   if(raw.trim()==="" || !Number.isInteger(number)) throw new Error("ValueError: invalid literal for int()");
+   const result=100/number;
+   out.textContent=String(result)+"\\nThen the original example attempts number[10] = 0.\\nTypeError: 'int' object does not support item assignment";
+   if(number===0) out.textContent="ZeroDivisionError: division by zero\\na should not be zero";
+ }catch(error){out.textContent=error.message+"\\nInvalid value";}
+}
+const questions=[
+ {q:"Which exception is raised by int('hello')?",a:["TypeError","ValueError","IndexError"],c:1,e:"The input is a string, but its value cannot be converted to an integer."},
+ {q:"Which clause runs only when the try block has no exception?",a:["finally","except","else"],c:2,e:"The else clause runs only after successful completion of try."},
+ {q:"What does a[10] = 0 do if a is the integer 5?",a:["Raises TypeError","Raises IndexError","Changes the integer"],c:0,e:"Integers do not support item assignment, so this is a TypeError."},
+ {q:"Which is the best default broad handler for application errors?",a:["except BaseException","except Exception","except:"],c:1,e:"Exception catches ordinary application exceptions without swallowing SystemExit and KeyboardInterrupt."},
+ {q:"How do you re-raise the currently handled exception?",a:["raise","throw","raise new"],c:0,e:"A bare raise inside an except block re-raises the active exception."},
+ {q:"What is the recommended way to ensure a file is closed?",a:["Ignore it","Use with open(...)","Use except only"],c:1,e:"A with statement uses a context manager to close the file reliably."}
+];
+const qroot=document.getElementById("questions");
+questions.forEach((q,i)=>{
+ const box=document.createElement("div");box.className="quiz";
+ const title=document.createElement("strong");title.textContent=(i+1)+". "+q.q;box.appendChild(title);
+ q.a.forEach((answer,j)=>{
+  const label=document.createElement("label");
+  const radio=document.createElement("input");radio.type="radio";radio.name="q"+i;radio.value=j;
+  label.appendChild(radio);label.append(" "+answer);box.appendChild(label);
+ });
+ const feedback=document.createElement("div");feedback.className="feedback";feedback.id="feedback"+i;box.appendChild(feedback);qroot.appendChild(box);
+});
+function checkQuiz(){
+ let score=0;
+ questions.forEach((q,i)=>{
+  const selected=document.querySelector('input[name="q'+i+'"]:checked');
+  const feedback=document.getElementById("feedback"+i);
+  if(selected && Number(selected.value)===q.c){score++;feedback.style.color="var(--green)";feedback.textContent="Correct. "+q.e;}
+  else{feedback.style.color="var(--red)";feedback.textContent="Not quite. "+q.e;}
+ });
+ document.getElementById("quizScore").textContent=score+" / "+questions.length+" correct";
+}
+const links=[...document.querySelectorAll("nav a")];
+const progress=document.getElementById("progress"),progressText=document.getElementById("progressText");
+const seen=new Set();
+const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting)seen.add(entry.target.id);});const percent=Math.round(seen.size/links.length*100);progress.style.width=percent+"%";progressText.textContent=percent+"% explored";},{threshold:.15});
+links.forEach(link=>{const section=document.querySelector(link.getAttribute("href"));if(section)observer.observe(section);});
+</script>
+</body>
+</html>

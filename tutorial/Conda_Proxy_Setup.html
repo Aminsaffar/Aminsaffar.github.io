@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conda Proxy Setup Guide</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #111827;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --accent: #6366f1;
+  --border: #1f2933;
+}
+
+.light {
+  --bg: #f9fafb;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+
+/* Layout */
+.container {
+  display: flex;
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+aside {
+  width: 240px;
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 8px;
+  transition: 0.3s;
+}
+
+aside a:hover {
+  color: var(--accent);
+}
+
+/* Main */
+main {
+  flex: 1;
+  padding-left: 40px;
+}
+
+/* Hero */
+.hero {
+  margin-bottom: 40px;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+}
+
+.hero p {
+  color: var(--muted);
+  margin-top: 10px;
+}
+
+/* Cards */
+.card {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  transition: transform 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* Code */
+pre {
+  background: #020617;
+  padding: 15px;
+  border-radius: 10px;
+  overflow-x: auto;
+  position: relative;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--accent);
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Alerts */
+.note {
+  border-left: 4px solid #3b82f6;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.warning {
+  border-left: 4px solid #f59e0b;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+/* Accordion */
+.accordion {
+  cursor: pointer;
+  padding: 15px;
+  background: var(--card);
+  margin-top: 10px;
+  border-radius: 8px;
+}
+
+.panel {
+  display: none;
+  padding: 10px;
+}
+
+/* Toggle */
+.toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+}
+
+/* Reveal Animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: 0.6s;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: none;
+}
+
+/* Responsive */
+@media(max-width: 900px) {
+  .container {
+    flex-direction: column;
+  }
+  aside {
+    display: none;
+  }
+  main {
+    padding-left: 0;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="toggle">🌙</div>
+
+<div class="container">
+
+<aside>
+  <a href="#intro">Intro</a>
+  <a href="#temporary">Temporary Proxy</a>
+  <a href="#permanent">Permanent Proxy</a>
+  <a href="#issues">Troubleshooting</a>
+  <a href="#summary">Summary</a>
+</aside>
+
+<main>
+
+<section class="hero reveal" id="intro">
+  <h1>Conda Proxy Setup</h1>
+  <p>Learn how to install packages behind restricted networks using proxy configuration.</p>
+</section>
+
+<section class="card reveal" id="temporary">
+  <h2>Temporary Proxy Setup</h2>
+  <p>Use environment variables for quick setup.</p>
+
+  <pre>
+<button class="copy-btn">Copy</button>
+export HTTP_PROXY=http://user:pass@ip:port
+export HTTPS_PROXY=http://user:pass@ip:port
+
+conda install numpy
+  </pre>
+
+  <div class="note">Use this method for one-time installs.</div>
+</section>
+
+<section class="card reveal" id="permanent">
+  <h2>Permanent Setup</h2>
+
+  <pre>
+<button class="copy-btn">Copy</button>
+conda config --set proxy_servers.http http://user:pass@ip:port
+conda config --set proxy_servers.https http://user:pass@ip:port
+  </pre>
+
+  <div class="note">Saved inside <code>.condarc</code>.</div>
+</section>
+
+<section class="card reveal" id="issues">
+  <h2>Troubleshooting</h2>
+
+  <div class="accordion">SSL Error</div>
+  <div class="panel">
+    <pre>
+<button class="copy-btn">Copy</button>
+conda config --set ssl_verify false
+    </pre>
+  </div>
+
+  <div class="accordion">Timeout Issue</div>
+  <div class="panel">
+    <pre>
+<button class="copy-btn">Copy</button>
+conda config --set remote_connect_timeout_secs 30
+    </pre>
+  </div>
+
+  <div class="warning">Disable SSL only if necessary.</div>
+</section>
+
+<section class="card reveal" id="summary">
+  <h2>Final Checklist</h2>
+  <ul>
+    <li>✔ Proxy configured</li>
+    <li>✔ SSL handled</li>
+    <li>✔ Install tested</li>
+  </ul>
+</section>
+
+</main>
+</div>
+
+<script>
+// Dark Mode Toggle
+document.querySelector('.toggle').onclick = () => {
+  document.body.classList.toggle('light');
+};
+
+// Copy Button
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.onclick = () => {
+    const code = btn.parentElement.innerText.replace("Copy", "");
+    navigator.clipboard.writeText(code);
+    btn.innerText = "Copied!";
+    setTimeout(() => btn.innerText = "Copy", 2000);
+  };
+});
+
+// Accordion
+document.querySelectorAll('.accordion').forEach(acc => {
+  acc.onclick = () => {
+    const panel = acc.nextElementSibling;
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+  };
+});
+
+// Scroll Reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('active');
+  });
+});
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+</script>
+
+</body>
+</html>

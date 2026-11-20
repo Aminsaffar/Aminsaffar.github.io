@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python OOP — Composition Deep Dive</title>
+<style>
+:root{--bg:#0b1020;--panel:#121b2e;--panel2:#192640;--text:#e9effb;--muted:#a2b1ca;--line:#2b3b59;--blue:#8eacff;--teal:#62ddc5;--gold:#f1c777;--code:#080e19;--red:#ff929e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI",sans-serif}a{color:var(--blue)}button{cursor:pointer;font:inherit}.top{position:sticky;top:0;z-index:5;background:#0b1020ee;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:13px max(20px,calc((100% - 1180px)/2));display:flex;justify-content:space-between;align-items:center}.brand{font-weight:800}.brand span{color:var(--teal)}.top a{text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:13px}main{max-width:1100px;margin:auto;padding:35px 22px 90px}.hero{padding:35px;border:1px solid var(--line);border-radius:20px;background:radial-gradient(ellipse at 90% 0%,#344c8955,transparent 50%),linear-gradient(135deg,#182846,#11192a)}.eyebrow{color:var(--teal);font-size:12px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase}.hero h1{font-size:clamp(32px,5vw,52px);line-height:1.12;margin:10px 0}.hero p{color:#bdcbe0;max-width:780px;font-size:17px}.tags{display:flex;gap:8px;flex-wrap:wrap}.tag{font-size:12px;border:1px solid #ffffff25;background:#ffffff0b;padding:4px 9px;border-radius:7px}section{margin:48px 0;scroll-margin-top:80px}.kicker{font-size:12px;color:var(--teal);font-weight:800;letter-spacing:1.2px;text-transform:uppercase}h2{font-size:28px;line-height:1.25;margin:5px 0 12px}h3{font-size:19px;margin:24px 0 8px}h4{margin:0 0 7px}.lead{font-size:16px;color:#bbc9df;max-width:850px}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin:17px 0}.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}.card p{color:var(--muted);font-size:14px;margin:5px 0 0}.callout{background:#172945;border:1px solid #3b5a87;padding:14px 17px;border-radius:11px;margin:16px 0}.callout strong{color:#b4c8ff}.tip{background:#112c2a;border-color:#286c61}.warning{background:#302718;border-color:#806737}.diagram{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:14px;margin:18px 0}.node{background:#1b2d4c;border:1px solid #5273a9;padding:12px 16px;border-radius:10px;text-align:center;min-width:125px}.node small{display:block;color:#b0bfd8;font-size:11px}.arrow{color:var(--teal);font-size:20px}.code{background:var(--code);border:1px solid #2a3a55;border-radius:12px;overflow:hidden;margin:16px 0}.codehead{display:flex;justify-content:space-between;align-items:center;background:#121e31;padding:8px 12px;border-bottom:1px solid #2a3a55;color:#9aacca;font-size:12px}.actions{display:flex;gap:7px}.btn{border:1px solid #394c6a;background:#1b2b45;color:#e7effd;padding:5px 9px;border-radius:7px;font-size:11px}.btn:disabled{opacity:.6}pre{margin:0;padding:16px;overflow:auto;color:#e1eafa;font:13px/1.65 Consolas,monospace;tab-size:4}.output{display:none;white-space:pre-wrap;padding:12px 15px;border-top:1px solid #2a3a55;color:#9de5c9;font:12px/1.6 Consolas,monospace}.output.show{display:block}.inline{font: .92em Consolas,monospace;color:#b8caff;background:#1c2a43;padding:2px 5px;border-radius:5px}.table{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:16px 0}table{width:100%;border-collapse:collapse;min-width:600px;font-size:13px}th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line)}th{background:var(--panel2)}td{color:#bdc9dd}tr:last-child td{border:0}.steps{counter-reset:step;list-style:none;padding:0}.steps li{counter-increment:step;padding:10px 12px 10px 47px;position:relative;border-bottom:1px solid var(--line)}.steps li:before{content:counter(step);position:absolute;left:8px;top:9px;width:25px;height:25px;display:grid;place-items:center;background:#263b60;border-radius:50%;color:#c5d4ff;font-size:12px;font-weight:700}.quiz{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:17px;margin:14px 0}.choice{display:block;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:7px 0;color:#c5d2e7}.choice input{accent-color:var(--blue);margin-right:8px}.feedback{display:none;margin-top:9px;font-size:13px}.feedback.show{display:block}.good{color:var(--teal)}.bad{color:var(--red)}.footer{border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:13px}
+@media(max-width:700px){main{padding:23px 15px 60px}.hero{padding:23px}.grid{grid-template-columns:1fr}.top{padding:12px 15px}h2{font-size:24px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">PYTHON<span>OOP</span> / Composition Deep Dive</div><a href="#start">Start lesson ↓</a></header>
+<main>
+<div class="hero" id="start">
+<div class="eyebrow">Object-oriented design · Advanced lesson</div>
+<h1>Composition:<br>A Car Built from Objects</h1>
+<p>A car is not just one large object containing unrelated variables. It is a system of collaborating objects: an engine performs work, a driver operates the car, and passengers occupy seats.</p>
+<div class="tags"><span class="tag">HAS-A relationship</span><span class="tag">Object collaboration</span><span class="tag">Ownership & lifecycle</span><span class="tag">Dependency injection</span></div>
+</div>
+
+<section>
+<div class="kicker">01 · The central idea</div><h2>What is composition?</h2>
+<p class="lead">Composition is an OOP design technique in which an object is built using other objects. Instead of inheriting all behavior from a parent class, the containing object delegates work to its component objects.</p>
+<div class="diagram">
+<div class="node"><b>Car</b><small>Whole object</small></div><div class="arrow">contains →</div>
+<div class="node"><b>Engine</b><small>Component</small></div><div class="node"><b>Driver</b><small>Component</small></div><div class="node"><b>Passengers</b><small>Components</small></div>
+</div>
+<div class="grid">
+<div class="card"><h4>Car has an Engine</h4><p>The engine provides start, stop, and power-related behavior.</p></div>
+<div class="card"><h4>Car has a Driver</h4><p>The driver has identity and can perform driving actions.</p></div>
+<div class="card"><h4>Car has Passengers</h4><p>The car manages a collection of people occupying seats.</p></div>
+</div>
+<div class="callout"><strong>Key distinction:</strong> A Driver is not a kind of Car. A Passenger is not a kind of Car. They are separate objects that collaborate with a Car.</div>
+</section>
+
+<section>
+<div class="kicker">02 · Start with the wrong design</div><h2>Why not put everything inside Car?</h2>
+<p>Imagine writing one enormous class that stores engine details, driver information, passenger records, seat allocation, and every related operation.</p>
+<div class="code"><div class="codehead"><span>Not recommended: one class doing everything</span><div class="actions"><button class="btn copy">Copy</button></div></div><pre><code>class Car:
+    def __init__(self, brand, engine_type, driver_name):
+        self.brand = brand
+        self.engine_type = engine_type
+        self.engine_running = False
+        self.driver_name = driver_name
+        self.passenger_names = []
+        self.fuel_level = 50
+
+    def start_engine(self):
+        self.engine_running = True
+
+    def add_passenger(self, name):
+        self.passenger_names.append(name)
+
+    def driver_introduces(self):
+        print(self.driver_name)
+
+    def refuel(self, amount):
+        self.fuel_level += amount</code></pre></div>
+<p>This may work for a tiny example, but the class now has several responsibilities. As the application grows, it becomes harder to test, extend, and maintain.</p>
+</section>
+
+<section>
+<div class="kicker">03 · Build the components</div><h2>Give every concept its own class</h2>
+<p>Each class should represent a meaningful concept and own the behavior related to that concept.</p>
+<h3>Engine class</h3>
+<div class="code"><div class="codehead"><span>engine.py</span><div class="actions"><button class="btn copy">Copy</button><button class="btn run">▶ Run</button></div></div><pre><code>class Engine:
+    def __init__(self, engine_type, horsepower):
+        self.engine_type = engine_type
+        self.horsepower = horsepower
+        self.is_running = False
+
+    def start(self):
+        if self.is_running:
+            print("Engine is already running")
+            return
+
+        self.is_running = True
+        print("Engine started")
+
+    def stop(self):
+        self.is_running = False
+        print("Engine stopped")
+
+    def status(self):
+        return "Running" if self.is_running else "Stopped"
+
+
+engine = Engine("Petrol", 150)
+engine.start()
+print(engine.status())</code></pre><div class="output"></div></div>
+<h3>Driver class</h3>
+<div class="code"><div class="codehead"><span>driver.py</span><div class="actions"><button class="btn copy">Copy</button><button class="btn run">▶ Run</button></div></div><pre><code>class Driver:
+    def __init__(self, name, license_number):
+        self.name = name
+        self.license_number = license_number
+
+    def drive(self):
+        print(f"{self.name} is driving")
+
+    def introduce(self):
+        print(f"Driver: {self.name}") 
+
+
+driver = Driver("Amin", "D-1024")
+driver.introduce()
+driver.drive()</code></pre><div class="output"></div></div>
+<h3>Passenger class</h3>
+<div class="code"><div class="codehead"><span>passenger.py</span><div class="actions"><button class="btn copy">Copy</button><button class="btn run">▶ Run</button></div></div><pre><code>class Passenger:
+    def __init__(self, name):
+        self.name = name
+
+    def introduce(self):
+        print(f"Passenger: {self.name}")
+
+
+passenger = Passenger("Sara")
+passenger.introduce()</code></pre><div class="output"></div></div>
+</section>
+
+<section>
+<div class="kicker">04 · Connect the objects</div><h2>Car contains an Engine, Driver, and Passengers</h2>
+<p>Now the Car class receives objects and coordinates them. Notice the important difference: <span class="inline">self.engine</span> stores an Engine object, not merely an engine-type string.</p>
+<div class="code"><div class="codehead"><span>car_composition.py</span><div class="actions"><button class="btn copy">Copy</button><button class="btn run">▶ Run</button></div></div><pre><code>class Engine:
+    def __init__(self, engine_type):
+        self.engine_type = engine_type
+        self.is_running = False
+
+    def start(self):
+        self.is_running = True
+        print(f"{self.engine_type} engine started")
+
+    def stop(self):
+        self.is_running = False
+        print("Engine stopped")
+
+
+class Driver:
+    def __init__(self, name):
+        self.name = name
+
+    def drive(self):
+        print(f"{self.name} is driving")
+
+
+class Passenger:
+    def __init__(self, name):
+        self.name = name
+
+
+class Car:
+    def __init__(self, brand, engine, driver):
+        self.brand = brand
+        self.engine = engine
+        self.driver = driver
+        self.passengers = []
+
+    def add_passenger(self, passenger):
+        self.passengers.append(passenger)
+        print(f"{passenger.name} entered the car")
+
+    def start(self):
+        print(f"Starting {self.brand}")
+        self.engine.start()
+        self.driver.drive()
+
+    def show_passengers(self):
+        print("Passengers:")
+        for passenger in self.passengers:
+            print(f"- {passenger.name}")
+
+
+engine = Engine("Petrol")
+driver = Driver("Alex")
+car = Car("Toyota", engine, driver)
+
+car.add_passenger(Passenger("Sara"))
+car.add_passenger(Passenger("John"))
+
+car.start()
+car.show_passengers()</code></pre><div class="output"></div></div>
+<div class="callout tip"><strong>Look closely:</strong> <span class="inline">self.engine = engine</span> stores a reference to an existing Engine object. When <span class="inline">self.engine.start()</span> is called, the Car delegates the operation to that component.</div>
+</section>
+
+<section>
+<div class="kicker">05 · Understand the references</div><h2>Objects are connected by references</h2>
+<p>Python variables hold references to objects. When you pass an object to a constructor, you generally pass a reference to the same object — you do not automatically make a copy.</p>
+<div class="diagram">
+<div class="node"><b>car</b><small>Car instance</small></div><div class="arrow">self.engine →</div><div class="node"><b>engine</b><small>Engine instance</small></div>
+<div class="node"><b>driver</b><small>Driver instance</small></div><div class="arrow">self.driver →</div><div class="node"><b>Car</b><small>references both</small></div>
+</div>
+<div class="code"><div class="codehead"><span>reference_identity.py</span><div class="actions"><button class="btn copy">Copy</button><button class="btn run">▶ Run</button></div></div><pre><code>class Engine:
+    pass
+
+
+class Car:
+    def __init__(self, engine):
+        self.engine = engine
+
+
+engine = Engine()
+car = Car(engine)
+
+print(car.engine is engine)  # True
+
+engine.custom_note = "Shared object"
+print(car.engine.custom_note)</code></pre><div class="output"></div></div>
+<p>Because both names refer to the same object, a change made through one reference can be observed through the other.</p>
+</section>
+
+<section>
+<div class="kicker">06 · Object relationship types</div><h2>Composition vs aggregation</h2>
+<p>Both are forms of object association. The distinction is about ownership and lifecycle, not a special Python keyword.</p>
+<div class="table"><table><thead><tr><th>Relationship</th><th>Ownership idea</th><th>Example</th><th>Typical lifecycle</th></tr></thead><tbody>
+<tr><td>Composition</td><td>Strong whole-part ownership</td><td>Car owns its built-in engine component</td><td>Part is conceptually tied to the whole</td></tr>
+<tr><td>Aggregation</td><td>Weak/shared association</td><td>Car has a passenger</td><td>Passenger exists independently</td></tr>
+<tr><td>Association</td><td>Objects know or use each other</td><td>Driver operates a car</td><td>Independent lifecycles</td></tr>
+</tbody></table></div>
+<div class="callout warning"><strong>Important nuance:</strong> Python does not enforce composition or aggregation. These are design concepts. A Car can own an Engine, but an Engine object can also exist independently in Python. The relationship is determined by your design and lifecycle rules.</div>
+<h3>Example: a passenger exists without the car</h3>
+<div class="code"><div class="codehead"><span>aggregation.py</span><div class="actions"><button class="btn copy">Copy</button><button class="btn run">▶ Run</button></div></div><pre><code>class Passenger:
+    def __init__(self, name):
+        self.name = name
+
+
+class Car:
+    def __init__(self):
+        self.passengers = []
+
+    def board(self, passenger):
+        self.passengers.append(passenger)
+
+
+sara = Passenger("Sara")
+car = Car()
+
+car.board(sara)
+
+print(car.passengers[0] is sara)
+del car
+
+# Sara still exists because another reference points to her.
+print(sara.name)</code></pre><div class="output"></div></div>
+<p>Deleting the variable <span class="inline">car</span> does not delete Sara. The passenger has an independent reference and lifecycle.</p>
+</section>
+
+<section>
+<div class="kicker">07 · Who creates the component?</div><h2>Two ways to construct composed objects</h2>
+<h3>1. Create components inside the whole</h3>
+<div class="code"><div class="codehead"><span>internal_creation.py</span><div class="actions"><button class="btn copy">Copy</button><button class="btn run">▶ Run</button></div></div><pre><code>class Engine:
+    def __init__(self, engine_type):
+        self.engine_type = engine_type
+
+
+class Car:
+    def __init__(self, brand):
+        self.brand = brand
+        self.engine = Engine("Electric")
+
+
+car = Car("Nova")
+print(car.engine.engine_type)</code></pre><div class="output"></div></div>
+<p>This is convenient when the Car is responsible for creating and managing its Engine component.</p>
+<h3>2. Inject components from outside</h3>
+<div class="code"><div class="codehead"><span>dependency_injection.py</span><div class="actions"><button class="btn copy">Copy</button><button class="btn run">▶ Run</button></div></div><pre><code>class Engine:
+    def __init__(self, engine_type):
+        self.engine_type = engine_type
+
+
+class Car:
+    def __init__(self, brand, engine):
+        self.brand = brand
+        self.engine = engine
+
+
+petrol_engine = Engine("Petrol")
+electric_engine = Engine("Electric")
+
+car_a = Car("Roadster", petrol_engine)
+car_b = Car("E-Motion", electric_engine)
+
+print(car_a.engine.engine_type)
+print(car_b.engine.engine_type)</code></pre><div class="output"></div></div>
+<p>This is called <strong>dependency injection</strong>: the Car receives the dependency it needs instead of constructing it internally.</p>
+<div class="callout tip"><strong>Why inject dependencies?</strong> You can swap implementations, reuse existing objects, and pass test doubles during testing. The Car becomes less tightly coupled to one concrete Engine implementation.</div>
+</section>
+
+<section>
+<div class="kicker">08 · A realistic model</div><h2>Seats, capacity, and passenger management</h2>
+<p>Let's make the model more realistic. A car has a fixed number of seats. One seat is reserved for the driver, and the remaining seats are available to passengers.</p>
+<div class="code"><div class="codehead"><span>car_seats.py</span><div class="actions"><button class="btn copy">Copy</button><button class="btn run">▶ Run</button></div></div><pre><code>class Passenger:
+    def __init__(self, name):
+        self.name = name
+
+
+class Driver:
+    def __init__(self, name):
+        self.name = name
+
+
+class Car:
+    def __init__(self, brand, driver, seat_count):
+        if seat_count < 1:
+            raise ValueError("A car needs at least one seat")
+
+        self.brand = brand
+        self.driver = driver
+        self.seat_count = seat_count
+        self.passengers = []
+
+    @property
+    def passenger_capacity(self):
+        return self.seat_count - 1
+
+    @property
+    def available_passenger_seats(self):
+        return self.passenger_capacity - len(self.passengers)
+
+    def add_passenger(self, passenger):
+        if self.available_passenger_seats <= 0:
+            raise ValueError("No passenger seats available")
+
+        self.passengers.append(passenger)
+        print(f"{passenger.name} boarded")
+
+    def show_occupants(self):
+        print(f"Driver: {self.driver.name}")
+        for passenger in self.passengers:
+            print(f"Passenger: {passenger.name}")
+        print(f"Seats available: {self.available_passenger_seats}")
+
+
+car = Car("Toyota", Driver("Alex"), seat_count=5)
+car.add_passenger(Passenger("Sara"))
+car.add_passenger(Passenger("John"))
+car.show_occupants()</code></pre><div class="output"></div></div>
+<p>Notice that the Car owns the rule for passenger capacity and boarding. Passenger stores passenger-specific data. Driver stores driver-specific data.</p>
+</section>
+
+<section>
+<div class="kicker">09 · Better architecture</div><h2>Depend on behavior, not a concrete class</h2>
+<p>Suppose the car should work with different engine types. Rather than checking exact classes everywhere, define the expected behavior and let each engine implement it.</p>
+<div class="code"><div class="codehead"><span>engine_interface.py</span><div class="actions"><button class="btn copy">Copy</button><button class="btn run">▶ Run</button></div></div><pre><code>from abc import ABC, abstractmethod
+
+
+class Engine(ABC):
+    @abstractmethod
+    def start(self):
+        pass
+
+
+class PetrolEngine(Engine):
+    def start(self):
+        print("Petrol engine started")
+
+
+class ElectricMotor(Engine):
+    def start(self):
+        print("Electric motor activated")
+
+
+class Car:
+    def __init__(self, engine):
+        self.engine = engine
+
+    def start(self):
+        self.engine.start()
+
+
+petrol_car = Car(PetrolEngine())
+electric_car = Car(ElectricMotor())
+
+petrol_car.start()
+electric_car.start()</code></pre><div class="output"></div></div>
+<p>This combines composition, abstraction, and polymorphism:</p>
+<ul><li><strong>Composition:</strong> Car has an engine object.</li><li><strong>Abstraction:</strong> Engine defines the expected operation.</li><li><strong>Polymorphism:</strong> PetrolEngine and ElectricMotor implement that operation differently.</li></ul>
+</section>
+
+<section>
+<div class="kicker">10 · Design checklist</div><h2>How to decide what should become a class</h2>
+<ol class="steps">
+<li><strong>Identify the concept.</strong> Is Engine, Driver, or Passenger a distinct thing in your problem domain?</li>
+<li><strong>Identify its own data.</strong> Does it have state that belongs naturally to it?</li>
+<li><strong>Identify its own behavior.</strong> Does it perform operations that should not be implemented by Car?</li>
+<li><strong>Define the relationship.</strong> Does Car own it, contain it, use it, or merely refer to it?</li>
+<li><strong>Choose lifecycle ownership.</strong> Can the component exist independently? Can it be shared or replaced?</li>
+<li><strong>Define the interface.</strong> What operations does Car need from the component?</li>
+<li><strong>Delegate behavior.</strong> Let the component perform its own responsibility.</li>
+</ol>
+<div class="callout"><strong>Good design question:</strong> If the engine implementation changes, should you need to rewrite passenger management? If the answer is no, keeping those responsibilities in separate classes is a good boundary.</div>
+</section>
+
+<section>
+<div class="kicker">11 · Knowledge check</div><h2>Check your understanding</h2>
+<div class="quiz" data-answer="b" data-explain="Car has an Engine object, so this is a HAS-A relationship: composition or aggregation depending on ownership semantics."><b>1. A Car stores an Engine object in self.engine. What relationship does this represent?</b><label class="choice"><input type="radio" name="q1" value="a"> IS-A inheritance</label><label class="choice"><input type="radio" name="q1" value="b"> HAS-A object relationship</label><label class="choice"><input type="radio" name="q1" value="c"> Method overriding</label><button class="btn check">Check</button><div class="feedback"></div></div>
+<div class="quiz" data-answer="a" data-explain="A Passenger can exist independently of a particular Car, which is why this is commonly modeled as aggregation or association."><b>2. A passenger can leave one car and enter another. What does that suggest?</b><label class="choice"><input type="radio" name="q2" value="a"> Passenger has an independent lifecycle</label><label class="choice"><input type="radio" name="q2" value="b"> Passenger must inherit from Car</label><label class="choice"><input type="radio" name="q2" value="c"> Passenger is a class attribute</label><button class="btn check">Check</button><div class="feedback"></div></div>
+<div class="quiz" data-answer="c" data-explain="Dependency injection supplies the Engine from outside, making the Car easier to configure and test."><b>3. What is dependency injection in the Car example?</b><label class="choice"><input type="radio" name="q3" value="a"> Car always creates its own engine</label><label class="choice"><input type="radio" name="q3" value="b"> Engine inherits from Car</label><label class="choice"><input type="radio" name="q3" value="c"> An Engine object is passed into Car</label><button class="btn check">Check</button><div class="feedback"></div></div>
+<div class="quiz" data-answer="b" data-explain="Delegation means Car asks its Engine component to perform engine-specific work."><b>4. What happens when Car.start() calls self.engine.start()?</b><label class="choice"><input type="radio" name="q4" value="a"> Car inherits the Engine method</label><label class="choice"><input type="radio" name="q4" value="b"> Car delegates work to the Engine object</label><label class="choice"><input type="radio" name="q4" value="c"> Python copies the Engine class</label><button class="btn check">Check</button><div class="feedback"></div></div>
+</section>
+<div class="footer"><strong>Composition Deep Dive · Python OOP Learning Lab</strong><p>Runnable examples use Pyodide loaded from a CDN and require an internet connection. All explanations and code remain visible without the runtime.</p></div>
+</main>
+<script>
+let runtime;
+async function getPython(){
+ if(!runtime){
+  runtime=(async()=>{
+   const script=document.createElement('script');
+   script.src='https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js';
+   document.head.appendChild(script);
+   await new Promise((resolve,reject)=>{script.onload=resolve;script.onerror=()=>reject(new Error('Could not load Python. Check your internet connection.'));});
+   return loadPyodide();
+  })();
+ }
+ return runtime;
+}
+document.querySelectorAll('.code').forEach(block=>{
+ const source=block.querySelector('code'), output=block.querySelector('.output');
+ block.querySelector('.copy')?.addEventListener('click',async e=>{
+  const button=e.currentTarget;
+  try{await navigator.clipboard.writeText(source.innerText);button.textContent='Copied!';}
+  catch{button.textContent='Select code';}
+  setTimeout(()=>button.textContent='Copy',1300);
+ });
+ block.querySelector('.run')?.addEventListener('click',async e=>{
+  const button=e.currentTarget;button.disabled=true;button.textContent='Loading…';
+  output.classList.add('show');output.textContent='Starting Python…';
+  try{
+   const py=await getPython();let stdout='',stderr='';
+   py.setStdout({batched:value=>stdout+=value+'\n'});
+   py.setStderr({batched:value=>stderr+=value+'\n'});
+   try{await py.runPythonAsync(source.innerText);output.textContent=(stdout||'Code completed without printed output.')+(stderr?'\n'+stderr:'');}
+   catch(error){output.textContent=(stdout?stdout+'\n':'')+'Error: '+error.message;}
+  }catch(error){output.textContent=error.message;}
+  finally{button.disabled=false;button.textContent='▶ Run';}
+ });
+});
+document.querySelectorAll('.quiz .check').forEach(button=>{
+ button.addEventListener('click',()=>{
+  const quiz=button.closest('.quiz'), selected=quiz.querySelector('input:checked'), feedback=quiz.querySelector('.feedback');
+  feedback.classList.add('show');
+  if(!selected){feedback.innerHTML='<span class="bad">Choose an answer first.</span>';return;}
+  const correct=selected.value===quiz.dataset.answer;
+  feedback.innerHTML=`<span class="${correct?'good':'bad'}">${correct?'Correct!':'Not quite.'}</span> ${quiz.dataset.explain}`;
+ });
+});
+</script>
+</body>
+</html>

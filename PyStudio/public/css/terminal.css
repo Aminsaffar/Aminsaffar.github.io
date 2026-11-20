@@ -1,0 +1,18 @@
+.terminal-output { scroll-behavior: smooth; }
+.terminal-output:focus { outline: none; }
+.terminal-chunk { color: var(--text-soft); }
+.terminal-chunk.stderr { color: var(--red); }
+.terminal-chunk.system { color: var(--text-dim); }
+.terminal-chunk.success { color: var(--green); }
+.terminal-ansi-bold { font-weight: 700; }
+.terminal-ansi-dim { opacity: .72; }
+.terminal-ansi-fg-0 { color: #222; } .terminal-ansi-fg-1 { color: #ff6b6b; } .terminal-ansi-fg-2 { color: #7bd88f; } .terminal-ansi-fg-3 { color: #f3c969; } .terminal-ansi-fg-4 { color: #77aaff; } .terminal-ansi-fg-5 { color: #d790ed; } .terminal-ansi-fg-6 { color: #62d8dc; } .terminal-ansi-fg-7 { color: #d6deea; }
+.terminal-ansi-fg-8 { color: #8391a2; } .terminal-ansi-fg-9 { color: #ff8a8a; } .terminal-ansi-fg-10 { color: #8be4a0; } .terminal-ansi-fg-11 { color: #f5d983; } .terminal-ansi-fg-12 { color: #91baff; } .terminal-ansi-fg-13 { color: #e5a5f4; } .terminal-ansi-fg-14 { color: #7de8eb; } .terminal-ansi-fg-15 { color: #fff; }
+.terminal-input-inline { display: inline; white-space: pre-wrap; }
+.terminal-input-inline input { display: inline-block; width: min(55ch, 70vw); min-width: 8ch; max-width: 100%; height: 1.75em; padding: 0; border: 0; border-bottom: 1px solid rgba(83,215,207,.5); border-radius: 0; outline: none; background: transparent; color: var(--text); caret-color: var(--accent); direction: auto; font-family: var(--font-mono); font-size: inherit; line-height: inherit; }
+.terminal-input-inline input:focus { border-bottom-color: var(--accent); outline: none; }
+.terminal-user-input { color: var(--text); }
+.terminal-input-cancelled { color: var(--yellow); }
+.terminal-boot-progress { color: var(--text-dim); }
+.terminal-status-text { color: var(--text-soft); }
+.terminal-input-hint { color: var(--text-dim); font-size: .9em; }

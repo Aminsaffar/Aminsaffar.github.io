@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VS Code Proxy — Professional Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1220;--card:#121a2b;--muted:#94a3b8;--text:#e5e7eb;
+  --accent:#38bdf8;--accent2:#22c55e;--danger:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Inter',sans-serif;background:radial-gradient(1200px 600px at 10% -10%,#1b2a4a,transparent),var(--bg);color:var(--text)}
+.container{max-width:1200px;margin:auto;padding:24px}
+.hero{padding:60px 20px;text-align:center}
+.hero h1{font-size:42px;margin:0 0 10px;background:linear-gradient(90deg,#38bdf8,#22c55e);-webkit-background-clip:text;color:transparent}
+.hero p{color:var(--muted);max-width:700px;margin:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),var(--card);border:1px solid rgba(255,255,255,.05);border-radius:20px;padding:22px;transition:.4s;opacity:0;transform:translateY(40px)}
+.card.visible{opacity:1;transform:translateY(0)}
+.card:hover{transform:translateY(-8px) scale(1.01);box-shadow:0 20px 40px rgba(0,0,0,.4)}
+.step{display:flex;align-items:center;gap:10px;font-weight:600;margin-bottom:10px;color:var(--accent2)}
+.icon{width:26px;height:26px}
+code{display:block;background:#020617;padding:12px;border-radius:10px;font-size:13px;overflow:auto;margin-top:10px;color:#facc15}
+ul{padding-left:18px}
+.tip{color:#60a5fa}
+.warning{color:#f87171}
+.badge{display:inline-block;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);padding:4px 10px;border-radius:999px;font-size:12px;margin-top:6px}
+.footer{text-align:center;color:var(--muted);margin-top:40px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<section class="hero">
+  <h1>VS Code Proxy Setup</h1>
+  <p>Complete professional guide to configure HTTP/HTTPS proxy in VS Code, fix extension issues, and work seamlessly in restricted networks.</p>
+</section>
+
+<section class="grid">
+
+<div class="card">
+  <div class="step">
+    <svg class="icon" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    GUI Method
+  </div>
+  <p>Open settings and configure proxy visually.</p>
+  <code>Ctrl + , → search "proxy" → set Http Proxy</code>
+  <span class="badge">Beginner Friendly</span>
+</div>
+
+<div class="card">
+  <div class="step">
+    <svg class="icon" fill="none" stroke="#38bdf8" stroke-width="2" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+    settings.json
+  </div>
+  <p>Most reliable configuration.</p>
+  <code>{
+  "http.proxy": "http://127.0.0.1:1080",
+  "http.proxyStrictSSL": false
+}</code>
+  <p class="tip">Disable SSL only if needed</p>
+</div>
+
+<div class="card">
+  <div class="step">
+    <svg class="icon" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20v-6M6 20v-4M18 20v-2M4 10l8-6 8 6"/></svg>
+    System Proxy
+  </div>
+  <p>Fix extension-level issues.</p>
+  <code>setx HTTP_PROXY http://127.0.0.1:1080
+setx HTTPS_PROXY http://127.0.0.1:1080</code>
+</div>
+
+<div class="card">
+  <div class="step">
+    <svg class="icon" fill="none" stroke="#38bdf8" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>
+    Git Proxy
+  </div>
+  <p>Ensure Git works inside VS Code.</p>
+  <code>git config --global http.proxy http://127.0.0.1:1080
+git config --global https.proxy http://127.0.0.1:1080</code>
+</div>
+
+<div class="card">
+  <div class="step">
+    <svg class="icon" fill="none" stroke="#facc15" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+    SOCKS Limitation
+  </div>
+  <p>VS Code does not support SOCKS directly.</p>
+  <ul>
+    <li>Use Clash</li>
+    <li>Use V2Ray</li>
+    <li>Convert SOCKS → HTTP</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="step">
+    <svg class="icon" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>
+    Troubleshooting
+  </div>
+  <code>curl https://google.com</code>
+  <ul>
+    <li>Wrong port</li>
+    <li>SOCKS instead of HTTP</li>
+    <li>SSL interception</li>
+  </ul>
+</div>
+
+</section>
+
+<section class="card" style="margin-top:30px">
+  <div class="step">
+    <svg class="icon" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+    Final Checklist
+  </div>
+  <ul>
+    <li>Proxy running</li>
+    <li>Correct port</li>
+    <li>Using HTTP</li>
+    <li>Restart VS Code</li>
+  </ul>
+</section>
+
+<div class="footer">Designed for clarity, speed, and real-world debugging ⚡</div>
+
+</div>
+
+<script>
+// Scroll reveal animation
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.card').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
