@@ -14,6 +14,7 @@ export class RuntimeManager {
     this.busy = false;
     this.currentRunId = null;
     this.operationId = 0;
+    this.runWaiters = new Map();
     this.startedAt = 0;
     this.timeoutId = null;
     this.interruptFallbackId = null;
@@ -83,6 +84,9 @@ export class RuntimeManager {
       case 'stderr':
         this.callbacks.onOutput(data.text, 'stderr');
         break;
+      case 'cell-result':
+        if (data.runId === this.currentRunId) this.callbacks.onOutput(data.text, 'result');
+        break;
       case 'input-request':
         if (data.runId === this.currentRunId) {
           this.callbacks.onStatus('waiting', 'Waiting for input');
@@ -142,7 +146,7 @@ export class RuntimeManager {
     return hint ? `${message}\n\nHint: ${hint}` : message;
   }
 
-  async run(code) {
+  async run(code, { displayResult = false, waitForCompletion = false } = {}) {
     if (this.busy) throw new Error('Python is already running. Stop it before starting another run.');
     if (!this.ready) await (this.readyPromise || this.start());
     if (!this.worker || !this.ready) throw new Error('Python runtime is not ready.');
@@ -156,9 +160,20 @@ export class RuntimeManager {
     Atomics.store(this.inputHeader, 1, 0);
     this.callbacks.onDuration(null);
     this.callbacks.onStatus('running', 'Running Python');
-    this.worker.postMessage({ type: 'run', runId, code: String(code ?? '') });
+    if (waitForCompletion) {
+      let resolve;
+      const promise = new Promise((done) => { resolve = done; });
+      this.runWaiters.set(runId, { promise, resolve });
+    }
+    this.worker.postMessage({ type: 'run', runId, code: String(code ?? ''), displayResult });
     this.timeoutId = setTimeout(() => this.handleTimeout(runId), PYTHON_TIMEOUT_MS);
     return runId;
+  }
+
+  waitForRun(runId) {
+    const waiter = this.runWaiters.get(runId);
+    if (!waiter) return Promise.resolve({ runId, state: 'completed' });
+    return waiter.promise.finally(() => this.runWaiters.delete(runId));
   }
 
   submitInput(value, runId = this.currentRunId) {
@@ -212,12 +227,14 @@ export class RuntimeManager {
   }
 
   finishRun(state, label) {
-    const elapsed = this.currentRunId !== null && this.startedAt ? performance.now() - this.startedAt : null;
+    const runId = this.currentRunId;
+    const elapsed = runId !== null && this.startedAt ? performance.now() - this.startedAt : null;
     this.stopTimers();
     this.busy = false;
     this.currentRunId = null;
     this.callbacks.onDuration(elapsed);
     this.callbacks.onStatus(state, label);
+    this.runWaiters.get(runId)?.resolve({ runId, state, label });
   }
 
   failInitialization(message) {
@@ -254,7 +271,7 @@ export class RuntimeManager {
     this.stopTimers();
     if (this.busy) {
       this.callbacks.onOutput('\n[Python runtime restarted.]\n', 'system');
-      this.callbacks.onDuration(this.startedAt ? performance.now() - this.startedAt : null);
+      this.finishRun('stopped', 'Runtime restarted');
     }
     this.busy = false;
     this.currentRunId = null;

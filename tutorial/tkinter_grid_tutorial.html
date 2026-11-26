@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tkinter Grid Layout Manager — Complete Guide</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --accent: #3b82f6;
+      --accent2: #60a5fa;
+      --green: #34d399;
+      --orange: #fbbf24;
+      --code-bg: #0d1117;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 16px;
+    }
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.6rem;
+    }
+
+    header p { color: var(--muted); font-size: 1.1rem; }
+
+    nav {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    nav h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.8rem;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.2rem;
+    }
+
+    nav a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    nav a:hover { text-decoration: underline; }
+
+    h2 {
+      font-size: 1.5rem;
+      margin: 2.8rem 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin: 1.8rem 0 0.7rem;
+      color: var(--accent2);
+    }
+
+    p { margin-bottom: 1rem; color: #c5d0e0; }
+
+    ul, ol {
+      margin: 0.6rem 0 1.2rem 1.5rem;
+      color: #c5d0e0;
+    }
+
+    li { margin-bottom: 0.35rem; }
+
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      background: var(--surface2);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: var(--orange);
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem 1.3rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.4rem;
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: #e6edf3;
+      font-size: inherit;
+    }
+
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .number  { color: #79c0ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+
+    .note {
+      background: rgba(59, 130, 246, 0.12);
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.2rem 0;
+      color: #b8d0f5;
+    }
+
+    .tip {
+      background: rgba(52, 211, 153, 0.1);
+      border-left: 4px solid var(--green);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.2rem 0;
+      color: #a7f3d0;
+    }
+
+    .warning {
+      background: rgba(251, 191, 36, 0.1);
+      border-left: 4px solid var(--orange);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.2rem 0;
+      color: #fde68a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface2);
+      color: var(--accent2);
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+
+    .grid-demo {
+      display: grid;
+      gap: 4px;
+      margin: 1.2rem 0;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .cell {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 0.6rem;
+      border-radius: 6px;
+      color: var(--accent2);
+    }
+
+    footer {
+      margin-top: 4rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.7rem; }
+      .container { padding: 1.2rem 1rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Tkinter <code>grid</code> Layout</h1>
+      <p>The most powerful &amp; flexible geometry manager — complete guide</p>
+    </header>
+
+    <nav>
+      <h3>Contents</h3>
+      <ul>
+        <li><a href="#why">1. Why grid?</a></li>
+        <li><a href="#basics">2. Basics</a></li>
+        <li><a href="#options">3. All Options</a></li>
+        <li><a href="#sticky">4. sticky</a></li>
+        <li><a href="#span">5. rowspan &amp; columnspan</a></li>
+        <li><a href="#weight">6. Weight &amp; Resizing</a></li>
+        <li><a href="#padding">7. Padding</a></li>
+        <li><a href="#uniform">8. Uniform Groups</a></li>
+        <li><a href="#practical">9. Practical Forms</a></li>
+        <li><a href="#tips">10. Best Practices</a></li>
+        <li><a href="#cheatsheet">11. Cheat Sheet</a></li>
+      </ul>
+    </nav>
+
+    <!-- 1. WHY -->
+    <section id="why">
+      <h2>1. Why use <code>grid</code>?</h2>
+      <p>
+        Tkinter has three geometry managers: <code>pack</code>, <code>grid</code>, and <code>place</code>.
+      </p>
+      <ul>
+        <li><strong>pack</strong> — quick &amp; simple, stacks widgets</li>
+        <li><strong>grid</strong> — table-like layout (best for forms, dashboards, calculators)</li>
+        <li><strong>place</strong> — absolute x/y positioning (rarely needed)</li>
+      </ul>
+      <p>
+        <code>grid</code> is the most powerful for structured layouts. Think of the window as a spreadsheet of rows and columns.
+      </p>
+      <div class="tip">
+        Rule of thumb: use <code>grid</code> for almost everything that looks like a form or table.
+      </div>
+    </section>
+
+    <!-- 2. BASICS -->
+    <section id="basics">
+      <h2>2. Basic Usage</h2>
+      <pre><code><span class="keyword">import</span> tkinter <span class="keyword">as</span> tk
+
+root = tk.Tk()
+root.title(<span class="string">"Grid Basics"</span>)
+root.geometry(<span class="string">"400x200"</span>)
+
+<span class="comment"># widget.grid(row=..., column=...)</span>
+tk.Label(root, text=<span class="string">"Name:"</span>).grid(row=<span class="number">0</span>, column=<span class="number">0</span>)
+tk.Entry(root).grid(row=<span class="number">0</span>, column=<span class="number">1</span>)
+
+tk.Label(root, text=<span class="string">"Email:"</span>).grid(row=<span class="number">1</span>, column=<span class="number">0</span>)
+tk.Entry(root).grid(row=<span class="number">1</span>, column=<span class="number">1</span>)
+
+tk.Button(root, text=<span class="string">"Submit"</span>).grid(row=<span class="number">2</span>, column=<span class="number">0</span>, columnspan=<span class="number">2</span>)
+
+root.mainloop()</code></pre>
+
+      <p>Visual layout of the code above:</p>
+      <div class="grid-demo" style="grid-template-columns: 1fr 2fr;">
+        <div class="cell">Label "Name:"<br><small>row=0, col=0</small></div>
+        <div class="cell">Entry<br><small>row=0, col=1</small></div>
+        <div class="cell">Label "Email:"<br><small>row=1, col=0</small></div>
+        <div class="cell">Entry<br><small>row=1, col=1</small></div>
+        <div class="cell" style="grid-column: span 2;">Button "Submit"<br><small>row=2, col=0, columnspan=2</small></div>
+      </div>
+
+      <div class="note">
+        Rows and columns are 0-based. Empty rows/columns collapse automatically (they take no space).
+      </div>
+    </section>
+
+    <!-- 3. OPTIONS -->
+    <section id="options">
+      <h2>3. All <code>grid()</code> Options</h2>
+      <table>
+        <thead>
+          <tr><th>Option</th><th>Description</th><th>Example</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>row</code></td>
+            <td>Row index (0-based)</td>
+            <td><code>row=2</code></td>
+          </tr>
+          <tr>
+            <td><code>column</code></td>
+            <td>Column index (0-based)</td>
+            <td><code>column=1</code></td>
+          </tr>
+          <tr>
+            <td><code>rowspan</code></td>
+            <td>How many rows the widget spans</td>
+            <td><code>rowspan=2</code></td>
+          </tr>
+          <tr>
+            <td><code>columnspan</code></td>
+            <td>How many columns the widget spans</td>
+            <td><code>columnspan=3</code></td>
+          </tr>
+          <tr>
+            <td><code>sticky</code></td>
+            <td>Alignment / stretch inside the cell</td>
+            <td><code>sticky="ew"</code></td>
+          </tr>
+          <tr>
+            <td><code>padx</code></td>
+            <td>External horizontal padding (pixels)</td>
+            <td><code>padx=10</code> or <code>padx=(5,15)</code></td>
+          </tr>
+          <tr>
+            <td><code>pady</code></td>
+            <td>External vertical padding</td>
+            <td><code>pady=8</code></td>
+          </tr>
+          <tr>
+            <td><code>ipadx</code></td>
+            <td>Internal horizontal padding</td>
+            <td><code>ipadx=10</code></td>
+          </tr>
+          <tr>
+            <td><code>ipady</code></td>
+            <td>Internal vertical padding</td>
+            <td><code>ipady=5</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 4. STICKY -->
+    <section id="sticky">
+      <h2>4. The <code>sticky</code> Option (Most Important)</h2>
+      <p>
+        By default a widget sits in the <strong>center</strong> of its cell and keeps its natural size.
+        <code>sticky</code> tells it which sides of the cell to stick to.
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>Value</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>"n"</code></td><td>North (top)</td></tr>
+          <tr><td><code>"s"</code></td><td>South (bottom)</td></tr>
+          <tr><td><code>"e"</code></td><td>East (right)</td></tr>
+          <tr><td><code>"w"</code></td><td>West (left)</td></tr>
+          <tr><td><code>"nw"</code>, <code>"ne"</code>, <code>"sw"</code>, <code>"se"</code></td><td>Corners</td></tr>
+          <tr><td><code>"ew"</code></td><td>Stretch horizontally</td></tr>
+          <tr><td><code>"ns"</code></td><td>Stretch vertically</td></tr>
+          <tr><td><code>"nsew"</code></td><td>Fill the entire cell</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code><span class="comment"># Labels aligned to the right (east)</span>
+tk.Label(root, text=<span class="string">"Username:"</span>).grid(row=<span class="number">0</span>, column=<span class="number">0</span>, sticky=<span class="string">"e"</span>, padx=<span class="number">5</span>, pady=<span class="number">5</span>)
+tk.Label(root, text=<span class="string">"Password:"</span>).grid(row=<span class="number">1</span>, column=<span class="number">0</span>, sticky=<span class="string">"e"</span>, padx=<span class="number">5</span>, pady=<span class="number">5</span>)
+
+<span class="comment"># Entries stretch to fill available width</span>
+tk.Entry(root).grid(row=<span class="number">0</span>, column=<span class="number">1</span>, sticky=<span class="string">"ew"</span>, padx=<span class="number">5</span>, pady=<span class="number">5</span>)
+tk.Entry(root).grid(row=<span class="number">1</span>, column=<span class="number">1</span>, sticky=<span class="string">"ew"</span>, padx=<span class="number">5</span>, pady=<span class="number">5</span>)
+
+<span class="comment"># Make column 1 expand when window is resized</span>
+root.columnconfigure(<span class="number">1</span>, weight=<span class="number">1</span>)</code></pre>
+
+      <div class="tip">
+        Almost every good form uses <code>sticky="e"</code> on labels and <code>sticky="ew"</code> on entries.
+      </div>
+    </section>
+
+    <!-- 5. SPAN -->
+    <section id="span">
+      <h2>5. <code>rowspan</code> &amp; <code>columnspan</code></h2>
+      <p>Let a widget occupy multiple cells.</p>
+
+      <pre><code><span class="comment"># Button spans two columns</span>
+tk.Button(root, text=<span class="string">"Submit"</span>).grid(row=<span class="number">2</span>, column=<span class="number">0</span>, columnspan=<span class="number">2</span>, sticky=<span class="string">"ew"</span>, pady=<span class="number">10</span>)
+
+<span class="comment"># Text widget spans 3 rows on the right side</span>
+text = tk.Text(root, width=<span class="number">30</span>, height=<span class="number">8</span>)
+text.grid(row=<span class="number">0</span>, column=<span class="number">2</span>, rowspan=<span class="number">3</span>, sticky=<span class="string">"nsew"</span>, padx=<span class="number">10</span>)</code></pre>
+
+      <div class="grid-demo" style="grid-template-columns: 1fr 1fr 1.5fr; grid-template-rows: auto auto auto;">
+        <div class="cell">Label</div>
+        <div class="cell">Entry</div>
+        <div class="cell" style="grid-row: span 3; display:flex; align-items:center; justify-content:center;">
+          Text<br>(rowspan=3)
+        </div>
+        <div class="cell">Label</div>
+        <div class="cell">Entry</div>
+        <div class="cell" style="grid-column: span 2;">Button (columnspan=2)</div>
+      </div>
+    </section>
+
+    <!-- 6. WEIGHT -->
+    <section id="weight">
+      <h2>6. Making the Layout Resize (weight)</h2>
+      <p>
+        By default, extra space when the window grows goes nowhere.
+        You must tell rows and columns how to share the extra space with <code>weight</code>.
+      </p>
+
+      <pre><code><span class="comment"># Column 1 should grow, column 0 stays fixed</span>
+root.columnconfigure(<span class="number">0</span>, weight=<span class="number">0</span>)   <span class="comment"># fixed</span>
+root.columnconfigure(<span class="number">1</span>, weight=<span class="number">1</span>)   <span class="comment"># takes all extra width</span>
+
+<span class="comment"># Row 2 (maybe a text area) should grow vertically</span>
+root.rowconfigure(<span class="number">2</span>, weight=<span class="number">1</span>)
+
+<span class="comment"># You can also set weight on a Frame if you nest grids</span>
+frame.columnconfigure(<span class="number">0</span>, weight=<span class="number">1</span>)</code></pre>
+
+      <div class="note">
+        <code>weight=0</code> (default) → no extra space<br>
+        <code>weight=1</code> → takes proportional extra space<br>
+        Higher numbers get more space (e.g. weight=2 gets twice as much as weight=1).
+      </div>
+
+      <h3>Complete resizable example</h3>
+      <pre><code><span class="keyword">import</span> tkinter <span class="keyword">as</span> tk
+
+root = tk.Tk()
+root.title(<span class="string">"Resizable Grid"</span>)
+root.geometry(<span class="string">"450x300"</span>)
+
+<span class="comment"># Make the Entry column expand</span>
+root.columnconfigure(<span class="number">1</span>, weight=<span class="number">1</span>)
+<span class="comment"># Make the Text row expand</span>
+root.rowconfigure(<span class="number">2</span>, weight=<span class="number">1</span>)
+
+tk.Label(root, text=<span class="string">"Name:"</span>).grid(row=<span class="number">0</span>, column=<span class="number">0</span>, sticky=<span class="string">"e"</span>, padx=<span class="number">8</span>, pady=<span class="number">6</span>)
+tk.Entry(root).grid(row=<span class="number">0</span>, column=<span class="number">1</span>, sticky=<span class="string">"ew"</span>, padx=<span class="number">8</span>, pady=<span class="number">6</span>)
+
+tk.Label(root, text=<span class="string">"Email:"</span>).grid(row=<span class="number">1</span>, column=<span class="number">0</span>, sticky=<span class="string">"e"</span>, padx=<span class="number">8</span>, pady=<span class="number">6</span>)
+tk.Entry(root).grid(row=<span class="number">1</span>, column=<span class="number">1</span>, sticky=<span class="string">"ew"</span>, padx=<span class="number">8</span>, pady=<span class="number">6</span>)
+
+tk.Label(root, text=<span class="string">"Notes:"</span>).grid(row=<span class="number">2</span>, column=<span class="number">0</span>, sticky=<span class="string">"ne"</span>, padx=<span class="number">8</span>, pady=<span class="number">6</span>)
+text = tk.Text(root, height=<span class="number">6</span>)
+text.grid(row=<span class="number">2</span>, column=<span class="number">1</span>, sticky=<span class="string">"nsew"</span>, padx=<span class="number">8</span>, pady=<span class="number">6</span>)
+
+tk.Button(root, text=<span class="string">"Save"</span>).grid(row=<span class="number">3</span>, column=<span class="number">1</span>, sticky=<span class="string">"e"</span>, padx=<span class="number">8</span>, pady=<span class="number">10</span>)
+
+root.mainloop()</code></pre>
+    </section>
+
+    <!-- 7. PADDING -->
+    <section id="padding">
+      <h2>7. Padding</h2>
+      <pre><code><span class="comment"># Same padding on both sides</span>
+widget.grid(..., padx=<span class="number">10</span>, pady=<span class="number">5</span>)
+
+<span class="comment"># Different left/right or top/bottom</span>
+widget.grid(..., padx=(<span class="number">20</span>, <span class="number">5</span>), pady=(<span class="number">10</span>, <span class="number">0</span>))   <span class="comment"># (left, right) / (top, bottom)</span>
+
+<span class="comment"># Internal padding (grows the widget itself)</span>
+widget.grid(..., ipadx=<span class="number">10</span>, ipady=<span class="number">8</span>)</code></pre>
+    </section>
+
+    <!-- 8. UNIFORM -->
+    <section id="uniform">
+      <h2>8. Uniform Column / Row Groups</h2>
+      <p>
+        Sometimes you want several columns to have the <strong>same width</strong> even if their content differs.
+      </p>
+      <pre><code><span class="comment"># All columns in the "btn" group will be the same width</span>
+root.columnconfigure(<span class="number">0</span>, weight=<span class="number">1</span>, uniform=<span class="string">"btn"</span>)
+root.columnconfigure(<span class="number">1</span>, weight=<span class="number">1</span>, uniform=<span class="string">"btn"</span>)
+root.columnconfigure(<span class="number">2</span>, weight=<span class="number">1</span>, uniform=<span class="string">"btn"</span>)
+
+tk.Button(root, text=<span class="string">"One"</span>).grid(row=<span class="number">0</span>, column=<span class="number">0</span>, sticky=<span class="string">"ew"</span>, padx=<span class="number">4</span>)
+tk.Button(root, text=<span class="string">"Two"</span>).grid(row=<span class="number">0</span>, column=<span class="number">1</span>, sticky=<span class="string">"ew"</span>, padx=<span class="number">4</span>)
+tk.Button(root, text=<span class="string">"Three"</span>).grid(row=<span class="number">0</span>, column=<span class="number">2</span>, sticky=<span class="string">"ew"</span>, padx=<span class="number">4</span>)</code></pre>
+    </section>
+
+    <!-- 9. PRACTICAL -->
+    <section id="practical">
+      <h2>9. Practical Form Examples</h2>
+
+      <h3>Classic two-column form</h3>
+      <pre><code><span class="keyword">import</span> tkinter <span class="keyword">as</span> tk
+<span class="keyword">from</span> tkinter <span class="keyword">import</span> ttk
+
+root = tk.Tk()
+root.title(<span class="string">"User Form"</span>)
+root.geometry(<span class="string">"420x320"</span>)
+root.columnconfigure(<span class="number">1</span>, weight=<span class="number">1</span>)
+
+fields = [
+    (<span class="string">"Full Name"</span>, <span class="number">0</span>),
+    (<span class="string">"Email"</span>, <span class="number">1</span>),
+    (<span class="string">"Phone"</span>, <span class="number">2</span>),
+    (<span class="string">"City"</span>, <span class="number">3</span>),
+]
+
+entries = {}
+<span class="keyword">for</span> label_text, row <span class="keyword">in</span> fields:
+    ttk.Label(root, text=label_text + <span class="string">":"</span>).grid(
+        row=row, column=<span class="number">0</span>, sticky=<span class="string">"e"</span>, padx=(<span class="number">15</span>, <span class="number">8</span>), pady=<span class="number">8</span>
+    )
+    entry = ttk.Entry(root)
+    entry.grid(row=row, column=<span class="number">1</span>, sticky=<span class="string">"ew"</span>, padx=(<span class="number">0</span>, <span class="number">15</span>), pady=<span class="number">8</span>)
+    entries[label_text] = entry
+
+<span class="comment"># Notes (taller)</span>
+ttk.Label(root, text=<span class="string">"Notes:"</span>).grid(row=<span class="number">4</span>, column=<span class="number">0</span>, sticky=<span class="string">"ne"</span>, padx=(<span class="number">15</span>, <span class="number">8</span>), pady=<span class="number">8</span>)
+notes = tk.Text(root, height=<span class="number">4</span>)
+notes.grid(row=<span class="number">4</span>, column=<span class="number">1</span>, sticky=<span class="string">"ew"</span>, padx=(<span class="number">0</span>, <span class="number">15</span>), pady=<span class="number">8</span>)
+root.rowconfigure(<span class="number">4</span>, weight=<span class="number">1</span>)
+
+<span class="comment"># Buttons row</span>
+btn_frame = ttk.Frame(root)
+btn_frame.grid(row=<span class="number">5</span>, column=<span class="number">0</span>, columnspan=<span class="number">2</span>, pady=<span class="number">15</span>)
+
+ttk.Button(btn_frame, text=<span class="string">"Cancel"</span>).pack(side=<span class="string">"left"</span>, padx=<span class="number">6</span>)
+ttk.Button(btn_frame, text=<span class="string">"Save"</span>).pack(side=<span class="string">"left"</span>, padx=<span class="number">6</span>)
+
+root.mainloop()</code></pre>
+
+      <h3>Calculator-style button grid</h3>
+      <pre><code><span class="keyword">import</span> tkinter <span class="keyword">as</span> tk
+
+root = tk.Tk()
+root.title(<span class="string">"Keypad"</span>)
+
+buttons = [
+    [<span class="string">"7"</span>, <span class="string">"8"</span>, <span class="string">"9"</span>, <span class="string">"/"</span>],
+    [<span class="string">"4"</span>, <span class="string">"5"</span>, <span class="string">"6"</span>, <span class="string">"*"</span>],
+    [<span class="string">"1"</span>, <span class="string">"2"</span>, <span class="string">"3"</span>, <span class="string">"-"</span>],
+    [<span class="string">"0"</span>, <span class="string">"."</span>, <span class="string">"="</span>, <span class="string">"+"</span>],
+]
+
+<span class="keyword">for</span> r, row <span class="keyword">in</span> enumerate(buttons):
+    root.rowconfigure(r, weight=<span class="number">1</span>)
+    <span class="keyword">for</span> c, text <span class="keyword">in</span> enumerate(row):
+        root.columnconfigure(c, weight=<span class="number">1</span>, uniform=<span class="string">"btn"</span>)
+        tk.Button(root, text=text, font=(<span class="string">"Arial"</span>, <span class="number">16</span>)).grid(
+            row=r, column=c, sticky=<span class="string">"nsew"</span>, padx=<span class="number">2</span>, pady=<span class="number">2</span>
+        )
+
+root.mainloop()</code></pre>
+    </section>
+
+    <!-- 10. TIPS -->
+    <section id="tips">
+      <h2>10. Best Practices &amp; Gotchas</h2>
+      <ul>
+        <li>Never mix <code>pack</code> and <code>grid</code> in the <strong>same parent</strong>. You can mix them in different frames.</li>
+        <li>Always set <code>weight</code> on columns/rows that should grow.</li>
+        <li>Use <code>sticky="ew"</code> (or <code>"nsew"</code>) together with weight, otherwise the widget stays its natural size.</li>
+        <li>Prefer <code>ttk</code> widgets for a more native look (they still work with grid).</li>
+        <li>For complex UIs, put groups of widgets inside <code>Frame</code>s and grid the frames.</li>
+        <li>You can call <code>grid_remove()</code> to hide a widget temporarily and <code>grid()</code> again to restore it (keeps settings).</li>
+        <li><code>grid_forget()</code> removes the widget from the layout completely.</li>
+      </ul>
+
+      <pre><code><span class="comment"># Hide / show example</span>
+widget.grid_remove()   <span class="comment"># hide but remember options</span>
+widget.grid()          <span class="comment"># show again with same options</span>
+
+widget.grid_forget()   <span class="comment"># remove completely</span></code></pre>
+    </section>
+
+    <!-- 11. CHEAT SHEET -->
+    <section id="cheatsheet">
+      <h2>11. Grid Cheat Sheet</h2>
+      <table>
+        <thead>
+          <tr><th>Goal</th><th>Code</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Place widget</td><td><code>w.grid(row=0, column=1)</code></td></tr>
+          <tr><td>Span columns</td><td><code>columnspan=2</code></td></tr>
+          <tr><td>Span rows</td><td><code>rowspan=3</code></td></tr>
+          <tr><td>Align right</td><td><code>sticky="e"</code></td></tr>
+          <tr><td>Stretch horizontally</td><td><code>sticky="ew"</code></td></tr>
+          <tr><td>Fill cell</td><td><code>sticky="nsew"</code></td></tr>
+          <tr><td>Make column expand</td><td><code>parent.columnconfigure(1, weight=1)</code></td></tr>
+          <tr><td>Make row expand</td><td><code>parent.rowconfigure(2, weight=1)</code></td></tr>
+          <tr><td>Equal width columns</td><td><code>uniform="groupname"</code></td></tr>
+          <tr><td>External padding</td><td><code>padx=10, pady=5</code></td></tr>
+          <tr><td>Hide temporarily</td><td><code>w.grid_remove()</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      <p>Tkinter Grid Layout Manager — Complete Guide</p>
+      <p style="margin-top:0.4rem; font-size:0.85rem;">
+        Open in any browser. Copy examples into a <code>.py</code> file and run with Python.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

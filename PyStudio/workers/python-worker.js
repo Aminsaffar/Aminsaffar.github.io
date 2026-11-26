@@ -82,7 +82,7 @@ async function initialize(data) {
   return readyPromise;
 }
 
-async function runCode({ code, runId }) {
+async function runCode({ code, runId, displayResult = false }) {
   await readyPromise;
   activeRunId = runId;
   pendingBytes = new Uint8Array();
@@ -96,6 +96,10 @@ async function runCode({ code, runId }) {
     await pyodide.loadPackagesFromImports(code);
     send('progress', { message: 'Running Python…', runId });
     const result = await pyodide.runPythonAsync(code);
+    if (displayResult && result !== null && result !== undefined) {
+      const text = typeof result === 'string' ? JSON.stringify(result) : String(result);
+      send('cell-result', { runId, text });
+    }
     if (result && typeof result.destroy === 'function') result.destroy();
     send('run-complete', { runId });
   } catch (error) {

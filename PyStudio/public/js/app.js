@@ -3,6 +3,8 @@ import { TerminalView } from './terminal.js';
 import { ProjectManager } from './project-manager.js';
 import { RuntimeManager } from './runtime-manager.js';
 import { EXAMPLES } from '../examples/programs.js';
+import { NotebookEditor } from './notebook.js';
+import { createNotebookText, isNotebookFileName } from './notebook-format.js';
 
 const $ = (selector) => document.querySelector(selector);
 const terminal = new TerminalView();
@@ -11,6 +13,9 @@ let projectManager;
 let runtime;
 let currentDialogMode = 'create';
 let renamingFileId = null;
+let notebookEditor;
+let activeNotebookCellId = null;
+let notebookRunAllActive = false;
 
 function toast(message, kind = 'info') {
   const region = $('#toastRegion');
@@ -19,6 +24,24 @@ function toast(message, kind = 'info') {
   item.textContent = message;
   region.append(item);
   setTimeout(() => item.remove(), 3400);
+}
+
+function blockNavigationDuringNotebookRun() {
+  if (!activeNotebookCellId && !notebookRunAllActive) return false;
+  toast('Wait for the running notebook cell to finish before changing files or projects.', 'info');
+  return true;
+}
+
+function updateFileControls(file = projectManager?.activeFile) {
+  const notebook = Boolean(file && isNotebookFileName(file.name));
+  $('#runButtonLabel').textContent = notebook ? 'Run cell' : 'Run';
+  $('#runButton').title = notebook ? 'Run the active notebook cell (Ctrl+Enter)' : 'Run Python (Ctrl+Enter)';
+  $('#downloadButtonLabel').textContent = notebook ? 'Download .ipynb' : 'Download .py';
+  $('#downloadButton').title = notebook ? 'Download current Jupyter Notebook' : 'Download current Python file';
+  $('#examplesSelect').hidden = notebook;
+  $('#cursorPosition').hidden = notebook;
+  $('#indentStatus').hidden = notebook;
+  $('#documentTypeLabel').textContent = notebook ? 'Jupyter Notebook' : 'Python';
 }
 
 function setRuntimeState(state, label) {
@@ -62,7 +85,7 @@ function renderFiles() {
   if (!project.files.length) {
     const empty = document.createElement('div');
     empty.className = 'sidebar-empty';
-    empty.textContent = 'No Python files yet. Create one with the + button.';
+    empty.textContent = 'No files yet. Use + to create a Python file or notebook.';
     list.append(empty);
   }
 
@@ -77,7 +100,7 @@ function renderFiles() {
     label.addEventListener('click', () => switchFile(file.id));
     const icon = document.createElement('span');
     icon.className = 'file-item-icon';
-    icon.textContent = 'Py';
+    icon.textContent = isNotebookFileName(file.name) ? 'NB' : 'Py';
     const name = document.createElement('span');
     name.className = 'file-item-name';
     name.textContent = file.name;
@@ -91,7 +114,11 @@ function renderFiles() {
     rename.textContent = '✎';
     rename.setAttribute('aria-label', `Rename ${file.name}`);
     rename.title = 'Rename file';
-    rename.addEventListener('click', (event) => { event.stopPropagation(); openFileDialog('rename', file); });
+    rename.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (blockNavigationDuringNotebookRun()) return;
+      openFileDialog('rename', file);
+    });
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.className = 'file-tool delete';
@@ -100,6 +127,7 @@ function renderFiles() {
     remove.title = 'Delete file';
     remove.addEventListener('click', async (event) => {
       event.stopPropagation();
+      if (blockNavigationDuringNotebookRun()) return;
       if (!confirm(`Delete “${file.name}” from this project? This cannot be undone.`)) return;
       await projectManager.deleteFile(file.id);
       syncEditorFromProject();
@@ -117,7 +145,7 @@ function renderFiles() {
     tab.title = file.name;
     const tabIcon = document.createElement('span');
     tabIcon.className = 'file-item-icon';
-    tabIcon.textContent = 'Py';
+    tabIcon.textContent = isNotebookFileName(file.name) ? 'NB' : 'Py';
     const tabName = document.createElement('span');
     tabName.className = 'tab-name';
     tabName.textContent = file.name;
@@ -127,17 +155,49 @@ function renderFiles() {
   }
   const activeFile = projectManager.activeFile;
   $('#breadcrumbFile').textContent = activeFile?.name || 'No file selected';
-  $('#editorHost').setAttribute('aria-label', activeFile ? `Python source code: ${activeFile.name}` : 'Python source code');
+  $('#editorHost').setAttribute('aria-label', activeFile ? `${isNotebookFileName(activeFile.name) ? 'Jupyter notebook' : 'Python source code'}: ${activeFile.name}` : 'Document editor');
+  updateFileControls(activeFile);
 }
 
 function syncEditorFromProject({ focus = false } = {}) {
   const file = projectManager.activeFile;
-  editor.setValue(file?.code ?? '', { focus });
+  const host = $('#editorHost');
+  notebookEditor?.destroy();
+  notebookEditor = null;
+  editor?.destroy();
+  editor = null;
+  host.replaceChildren();
+  if (file && isNotebookFileName(file.name)) {
+    try {
+      notebookEditor = new NotebookEditor(host, file.code || createNotebookText(), {
+        onChange: (content) => {
+          if (projectManager.activeFile?.id === file.id) projectManager.updateFileContent(file.id, content);
+        },
+        onRunCell: (cellId) => runNotebookCell(cellId),
+        onRunAll: runAllNotebook,
+      });
+      if (focus) requestAnimationFrame(() => notebookEditor?.editors.get(notebookEditor.getActiveCellId())?.focus());
+    } catch (error) {
+      host.textContent = `Could not open notebook: ${error.message}`;
+      toast(error.message, 'error');
+    }
+  } else {
+    editor = new PythonEditor(host, {
+      onChange: (code) => {
+        const activeFile = projectManager.activeFile;
+        if (activeFile) projectManager.updateFileContent(activeFile.id, code);
+      },
+      onCursor: ({ line, column }) => { $('#cursorPosition').textContent = `Ln ${line}, Col ${column}`; },
+      onRun: runCurrentFile,
+    });
+    editor.setValue(file?.code ?? '', { focus });
+  }
   renderProjects();
   renderFiles();
 }
 
 async function switchFile(id) {
+  if (blockNavigationDuringNotebookRun()) return;
   try {
     await projectManager.saveNow();
     await projectManager.switchFile(id);
@@ -145,20 +205,37 @@ async function switchFile(id) {
   } catch (error) { toast(error.message, 'error'); }
 }
 
+function updateFileTypeHint() {
+  const file = projectManager?.activeProject?.files.find((entry) => entry.id === renamingFileId);
+  const extension = currentDialogMode === 'rename'
+    ? (file?.name.match(/\.(?:py|ipynb)$/i)?.[0] || '.py')
+    : ($('#fileTypeSelect').value === 'ipynb' ? '.ipynb' : '.py');
+  $('#fileNameInput').placeholder = currentDialogMode === 'rename' ? `lesson${extension}` : `lesson${extension}`;
+  $('#fileNameHint').textContent = currentDialogMode === 'rename'
+    ? `Renaming keeps the ${extension} file type.`
+    : `New files use ${extension}. Python (.py) remains the default.`;
+}
+
 function openFileDialog(mode, file = null) {
   currentDialogMode = mode;
   renamingFileId = file?.id || null;
-  $('#fileDialogTitle').textContent = mode === 'rename' ? 'Rename file' : 'New Python file';
+  $('#fileDialogTitle').textContent = mode === 'rename' ? 'Rename file' : 'Create a file';
+  $('#fileDialogEyebrow').textContent = mode === 'rename' ? 'FILE' : 'NEW FILE';
   $('#fileConfirm').textContent = mode === 'rename' ? 'Save name' : 'Create file';
   $('#fileNameInput').value = mode === 'rename' ? (file?.name || '') : '';
+  $('#fileTypeRow').hidden = mode === 'rename';
+  $('#fileTypeSelect').value = 'py';
+  updateFileTypeHint();
   $('#fileDialog').showModal();
   $('#fileNameInput').focus();
 }
 
 function downloadCurrentFile() {
   const file = projectManager.activeFile;
-  if (!file) { toast('Create a Python file first.', 'error'); return; }
-  const blob = new Blob([editor.getValue()], { type: 'text/x-python;charset=utf-8' });
+  if (!file) { toast('Create a file or notebook first.', 'error'); return; }
+  const notebook = isNotebookFileName(file.name);
+  const content = notebook ? (notebookEditor?.serialize() || file.code) : (editor?.getValue() ?? file.code);
+  const blob = new Blob([content], { type: notebook ? 'application/x-ipynb+json;charset=utf-8' : 'text/x-python;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
@@ -168,7 +245,62 @@ function downloadCurrentFile() {
   toast(`${file.name} downloaded.`, 'success');
 }
 
+async function runNotebookCell(cellId) {
+  if (!notebookEditor) return { state: 'error' };
+  if (!runtime?.ready) {
+    toast(runtime?.isolated ? 'Python is still loading. Try again when the runtime is ready.' : 'Enable cross-origin isolation in this browser before running Python.', 'error');
+    return { state: 'error' };
+  }
+  if (runtime.busy) {
+    toast('Python is already running. Stop it before starting another cell.', 'error');
+    return { state: 'error' };
+  }
+  let code;
+  try { code = notebookEditor.startCellRun(cellId); }
+  catch (error) { toast(error.message, 'error'); return { state: 'error' }; }
+  activeNotebookCellId = cellId;
+  try {
+    const runId = await runtime.run(code, { displayResult: true, waitForCompletion: true });
+    const result = await runtime.waitForRun(runId);
+    notebookEditor?.finishCellRun(cellId, result.state);
+    return result;
+  } catch (error) {
+    notebookEditor?.appendOutput(cellId, `${error.message || String(error)}\n`, 'stderr');
+    notebookEditor?.finishCellRun(cellId, 'error');
+    toast(error.message || 'Could not run notebook cell.', 'error');
+    return { state: 'error' };
+  } finally {
+    if (activeNotebookCellId === cellId) activeNotebookCellId = null;
+    if (window.matchMedia('(max-width: 680px)').matches) selectMobileView('editor');
+  }
+}
+
+async function runAllNotebook() {
+  if (!notebookEditor || notebookRunAllActive) return;
+  if (runtime?.busy) { toast('Stop the current Python run before running the notebook.', 'error'); return; }
+  const cellIds = notebookEditor.getCodeCellIds();
+  if (!cellIds.length) { toast('Add a code cell before running the notebook.', 'error'); return; }
+  notebookRunAllActive = true;
+  const runAllButton = $('#editorHost').querySelector('.notebook-run-all');
+  if (runAllButton) runAllButton.disabled = true;
+  try {
+    for (const cellId of cellIds) {
+      const result = await runNotebookCell(cellId);
+      if (result.state !== 'completed') break;
+    }
+  } finally {
+    notebookRunAllActive = false;
+    if (runAllButton?.isConnected) runAllButton.disabled = false;
+  }
+}
+
 async function runCurrentFile() {
+  const file = projectManager?.activeFile;
+  if (file && isNotebookFileName(file.name)) {
+    const cellId = notebookEditor?.getActiveCellId();
+    if (!cellId) { toast('Select or add a code cell to run.', 'error'); return; }
+    return runNotebookCell(cellId);
+  }
   if (!runtime?.ready) {
     toast(runtime?.isolated ? 'Python is still loading. Try again when the runtime is ready.' : 'Enable cross-origin isolation in this browser before running Python.', 'error');
     return;
@@ -176,7 +308,7 @@ async function runCurrentFile() {
   try {
     terminal.clear();
     terminal.setDuration(null);
-    await runtime.run(editor.getValue());
+    await runtime.run(editor?.getValue() ?? '');
     if (window.matchMedia('(max-width: 680px)').matches) selectMobileView('terminal');
   } catch (error) {
     terminal.append(error.message || String(error), 'stderr');
@@ -295,6 +427,7 @@ function bindEvents() {
   });
   $('#downloadTerminalButton').addEventListener('click', () => terminal.download());
   $('#newProjectButton').addEventListener('click', () => {
+    if (blockNavigationDuringNotebookRun()) return;
     $('#projectNameInput').value = '';
     $('#projectDialog').showModal();
     $('#projectNameInput').focus();
@@ -302,6 +435,7 @@ function bindEvents() {
   $('#projectForm').addEventListener('submit', async (event) => {
     event.preventDefault();
     if (event.submitter?.value === 'cancel') { $('#projectDialog').close(); return; }
+    if (blockNavigationDuringNotebookRun()) return;
     const name = $('#projectNameInput').value.trim();
     if (!name) return;
     try {
@@ -313,29 +447,46 @@ function bindEvents() {
     } catch (error) { toast(error.message, 'error'); }
   });
   $('#projectSelect').addEventListener('change', async (event) => {
+    if (blockNavigationDuringNotebookRun()) {
+      event.target.value = projectManager.activeProjectId;
+      return;
+    }
     await projectManager.switchProject(event.target.value);
     syncEditorFromProject();
     terminal.clear();
   });
-  $('#newFileButton').addEventListener('click', () => openFileDialog('create'));
+  $('#newFileButton').addEventListener('click', () => {
+    if (blockNavigationDuringNotebookRun()) return;
+    openFileDialog('create');
+  });
+  $('#fileTypeSelect').addEventListener('change', updateFileTypeHint);
   $('#fileForm').addEventListener('submit', async (event) => {
     event.preventDefault();
     if (event.submitter?.value === 'cancel') { $('#fileDialog').close(); return; }
+    if (blockNavigationDuringNotebookRun()) return;
     const name = $('#fileNameInput').value.trim();
     if (!name) return;
     try {
       if (currentDialogMode === 'rename') await projectManager.renameFile(renamingFileId, name);
-      else await projectManager.createFile(name);
+      else {
+        const extension = $('#fileTypeSelect').value === 'ipynb' ? '.ipynb' : '.py';
+        const baseName = name.replace(/\.(?:py|ipynb)$/i, '') || 'untitled';
+        await projectManager.createFile(`${baseName}${extension}`, extension === '.ipynb' ? createNotebookText() : '');
+      }
       syncEditorFromProject({ focus: true });
       $('#fileDialog').close();
-      toast(currentDialogMode === 'rename' ? 'File renamed.' : 'Python file created.', 'success');
+      toast(currentDialogMode === 'rename' ? 'File renamed.' : 'File created.', 'success');
     } catch (error) { toast(error.message, 'error'); }
   });
-  $('#importFileButton').addEventListener('click', () => $('#fileImportInput').click());
+  $('#importFileButton').addEventListener('click', () => {
+    if (blockNavigationDuringNotebookRun()) return;
+    $('#fileImportInput').click();
+  });
   $('#fileImportInput').addEventListener('change', async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.name.toLowerCase().endsWith('.py')) { toast('Choose a .py Python file.', 'error'); event.target.value = ''; return; }
+    if (blockNavigationDuringNotebookRun()) { event.target.value = ''; return; }
+    if (!/\.(?:py|ipynb)$/i.test(file.name)) { toast('Choose a .py Python file or a .ipynb Jupyter notebook.', 'error'); event.target.value = ''; return; }
     try {
       await projectManager.importFile(file);
       syncEditorFromProject({ focus: true });
@@ -363,6 +514,7 @@ function bindEvents() {
     const selected = EXAMPLES.find((example) => example.id === event.target.value);
     event.target.value = '';
     if (!selected || !projectManager.activeFile) return;
+    if (isNotebookFileName(projectManager.activeFile.name)) { toast('Examples can be loaded into a .py file, not a notebook.', 'info'); return; }
     if (editor.getValue().trim() && !confirm(`Replace the contents of ${projectManager.activeFile.name} with “${selected.title}”?`)) return;
     editor.setValue(selected.code, { focus: true });
     projectManager.updateFileContent(projectManager.activeFile.id, selected.code);
@@ -384,6 +536,7 @@ function bindEvents() {
     }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'n' && !event.shiftKey) {
       event.preventDefault();
+      if (blockNavigationDuringNotebookRun()) return;
       openFileDialog('create');
     }
   });
@@ -409,14 +562,6 @@ async function initialize() {
   }
   renderProjects();
   renderFiles();
-  editor = new PythonEditor($('#editorHost'), {
-    onChange: (code) => {
-      const file = projectManager.activeFile;
-      if (file) projectManager.updateFileContent(file.id, code);
-    },
-    onCursor: ({ line, column }) => { $('#cursorPosition').textContent = `Ln ${line}, Col ${column}`; },
-    onRun: runCurrentFile,
-  });
   syncEditorFromProject();
   bindEvents();
   setSaveState('saved');
@@ -431,9 +576,25 @@ async function initialize() {
       $('#footerMessage').textContent = `Pyodide ${version} · Runs on this device`;
       toast('Python runtime is ready.', 'success');
     },
-    onOutput: (text, kind) => terminal.append(text, kind === 'stderr' ? 'stderr' : kind === 'system' ? 'system' : 'stdout'),
-    onInputRequest: (submit) => terminal.requestInput(submit),
-    onError: (message) => terminal.append(`${message}\n`, 'stderr'),
+    onOutput: (text, kind) => {
+      if (activeNotebookCellId && notebookEditor && (kind === 'stdout' || kind === 'stderr' || kind === 'result')) {
+        if (kind === 'result') notebookEditor.appendResult(activeNotebookCellId, text);
+        else notebookEditor.appendOutput(activeNotebookCellId, text, kind);
+        return;
+      }
+      terminal.append(text, kind === 'stderr' ? 'stderr' : kind === 'system' ? 'system' : 'stdout');
+    },
+    onInputRequest: (submit) => {
+      if (activeNotebookCellId && window.matchMedia('(max-width: 680px)').matches) {
+        terminal.append('Notebook cell requested input. Its prompt is shown in the active cell.\n', 'system');
+        selectMobileView('terminal');
+      }
+      terminal.requestInput(submit);
+    },
+    onError: (message) => {
+      if (activeNotebookCellId && notebookEditor) notebookEditor.appendOutput(activeNotebookCellId, `${message}\n`, 'stderr');
+      else terminal.append(`${message}\n`, 'stderr');
+    },
     onDuration: (duration) => terminal.setDuration(duration),
   });
   if (!runtime.isolated) $('#isolationBanner').hidden = false;

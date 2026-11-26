@@ -4,19 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f15">
-  <meta name="description" content="A browser-based Python workspace. Write and run Python locally with Pyodide and WebAssembly.">
+  <meta name="description" content="A browser-based Python workspace with local .py files and Jupyter notebooks powered by Pyodide and WebAssembly.">
   <meta name="application-name" content="PyStudio">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="PyStudio">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>PyStudio — Browser Python IDE</title>
+  <title>PyStudio — Browser Python IDE &amp; Notebooks</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
   <link rel="stylesheet" href="./css/main.css">
   <link rel="stylesheet" href="./css/editor.css">
   <link rel="stylesheet" href="./css/terminal.css">
+  <link rel="stylesheet" href="./css/notebook.css">
   <script type="importmap">
     {
       "imports": {
@@ -60,7 +61,7 @@
     <div class="actionbar">
       <div class="action-group">
         <button class="run-button" id="runButton" type="button" title="Run Python (Ctrl+Enter)">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3.8v12.4L16 10 6 3.8Z"/></svg><span>Run</span><kbd>Ctrl ↵</kbd>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3.8v12.4L16 10 6 3.8Z"/></svg><span id="runButtonLabel">Run</span><kbd>Ctrl ↵</kbd>
         </button>
         <button class="toolbar-button stop-button" id="stopButton" type="button" disabled title="Stop Python execution">
           <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg><span>Stop</span>
@@ -75,7 +76,7 @@
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3.5h10l2.5 2.6v10.4h-13V3.5Z"/><path d="M7 3.5v5h6v-5M7 16.5v-5h6v5"/></svg><span>Save</span>
         </button>
         <button class="toolbar-button" id="downloadButton" type="button" title="Download current Python file">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0 3.2-3.2M10 12 6.8 8.8M4 13.5v3h12v-3"/></svg><span>Download .py</span>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0 3.2-3.2M10 12 6.8 8.8M4 13.5v3h12v-3"/></svg><span id="downloadButtonLabel">Download .py</span>
         </button>
         <button class="toolbar-button package-button" id="packageButton" type="button" title="Install a Pyodide-compatible Python package">
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2.8 6.2 3.6v7.2L10 17.2l-6.2-3.6V6.4L10 2.8Z"/><path d="M10 10v7m6.2-10.6L10 10 3.8 6.4"/></svg><span>Packages</span>
@@ -100,29 +101,29 @@
         <div class="file-actions">
           <span class="file-heading">FILES</span>
           <div class="file-action-buttons">
-            <button class="icon-button small" id="newFileButton" type="button" title="New Python file" aria-label="New Python file"><svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12"/></svg></button>
-            <button class="icon-button small" id="importFileButton" type="button" title="Import .py file" aria-label="Import Python file"><svg viewBox="0 0 20 20"><path d="M10 13V4m0 0L6.8 7.2M10 4l3.2 3.2M4 13.5v2.8h12v-2.8"/></svg></button>
-            <input id="fileImportInput" type="file" accept=".py,text/x-python,text/plain" hidden>
+            <button class="icon-button small" id="newFileButton" type="button" title="Create a Python file or notebook" aria-label="Create a file or notebook"><svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12"/></svg></button>
+            <button class="icon-button small" id="importFileButton" type="button" title="Import a .py or .ipynb file" aria-label="Import a Python file or notebook"><svg viewBox="0 0 20 20"><path d="M10 13V4m0 0L6.8 7.2M10 4l3.2 3.2M4 13.5v2.8h12v-2.8"/></svg></button>
+            <input id="fileImportInput" type="file" accept=".py,.ipynb,text/x-python,text/plain,application/json" hidden>
           </div>
         </div>
-        <nav class="file-list" id="fileList" aria-label="Python files"></nav>
+        <nav class="file-list" id="fileList" aria-label="Project files"></nav>
         <div class="sidebar-footer"><span class="storage-icon" aria-hidden="true">▣</span><span>Saved in this browser</span></div>
       </aside>
 
-      <section class="main-column" aria-label="Python workspace">
+      <section class="main-column" aria-label="Python and notebook workspace">
         <div class="mobile-tabs" role="tablist" aria-label="Workspace view">
           <button class="mobile-tab active" id="mobileEditorTab" type="button" role="tab" aria-selected="true">Editor</button>
           <button class="mobile-tab" id="mobileTerminalTab" type="button" role="tab" aria-selected="false">Terminal <span class="mobile-status-dot" id="mobileStatusDot"></span></button>
         </div>
         <div class="panels" id="panels">
           <section class="editor-panel" id="editorPanel" aria-label="Code editor">
-            <div class="editor-tabbar" id="editorTabs" role="tablist" aria-label="Open Python files"></div>
+            <div class="editor-tabbar" id="editorTabs" role="tablist" aria-label="Open files"></div>
             <div class="editor-toolbar">
               <div class="breadcrumb"><span class="breadcrumb-muted" id="breadcrumbProject">My Project</span><span class="breadcrumb-separator">/</span><span id="breadcrumbFile">main.py</span></div>
               <div class="editor-toolbar-right"><select id="examplesSelect" aria-label="Load an example program"><option value="">Examples</option></select><span class="save-indicator" id="saveIndicator">All changes saved</span></div>
             </div>
-            <div class="editor-host" id="editorHost" aria-label="Python source code"></div>
-            <div class="editor-statusbar"><span><span class="status-language-dot"></span>Python</span><span id="cursorPosition">Ln 1, Col 1</span><span class="editor-status-right"><span id="indentStatus">Spaces: 4</span><span>UTF-8</span></span></div>
+            <div class="editor-host" id="editorHost" aria-label="Document editor"></div>
+            <div class="editor-statusbar"><span><span class="status-language-dot"></span><span id="documentTypeLabel">Python</span></span><span id="cursorPosition">Ln 1, Col 1</span><span class="editor-status-right"><span id="indentStatus">Spaces: 4</span><span>UTF-8</span></span></div>
           </section>
           <div class="panel-resizer" id="panelResizer" role="separator" aria-label="Resize editor and terminal" aria-orientation="horizontal" tabindex="0"></div>
           <section class="terminal-panel" id="terminalPanel" aria-label="Integrated terminal">
@@ -160,10 +161,14 @@
 
   <dialog class="modal" id="fileDialog" aria-labelledby="fileDialogTitle">
     <form method="dialog" id="fileForm">
-      <div class="modal-header"><div><span class="modal-eyebrow">PYTHON FILE</span><h2 id="fileDialogTitle">New file</h2></div><button class="icon-button" value="cancel" aria-label="Close dialog" type="submit">×</button></div>
+      <div class="modal-header"><div><span class="modal-eyebrow" id="fileDialogEyebrow">NEW FILE</span><h2 id="fileDialogTitle">Create a file</h2></div><button class="icon-button" value="cancel" aria-label="Close dialog" type="submit">×</button></div>
       <label class="field-label" for="fileNameInput">File name</label>
       <input class="text-field" id="fileNameInput" maxlength="64" required placeholder="lesson.py">
-      <p class="field-hint">Files use the <code>.py</code> extension.</p>
+      <div id="fileTypeRow">
+        <label class="field-label" for="fileTypeSelect">File type</label>
+        <select class="text-field" id="fileTypeSelect"><option value="py">Python file (.py)</option><option value="ipynb">Jupyter Notebook (.ipynb)</option></select>
+      </div>
+      <p class="field-hint" id="fileNameHint">New files use .py. Python (.py) remains the default.</p>
       <div class="modal-actions"><button class="secondary-button" value="cancel" type="submit">Cancel</button><button class="primary-button" id="fileConfirm" value="default" type="submit">Create file</button></div>
     </form>
   </dialog>
@@ -185,13 +190,15 @@
         <p>PyStudio runs Python with Pyodide and WebAssembly in a dedicated browser worker. Your code and projects stay in this browser; running Python does not call an execution backend.</p>
         <div class="help-callout"><strong>Only run code you trust.</strong><span>Browser execution is isolated from the page UI, but it is not a complete security sandbox. Code can use CPU and memory and may access network-capable Python APIs.</span></div>
         <h3>Keyboard shortcuts</h3>
-        <div class="shortcut-row"><span>Run current file</span><kbd>Ctrl / ⌘ + Enter</kbd></div>
+        <div class="shortcut-row"><span>Run current file or notebook cell</span><kbd>Ctrl / ⌘ + Enter</kbd></div>
         <div class="shortcut-row"><span>Indent selection</span><kbd>Tab</kbd></div>
         <div class="shortcut-row"><span>Find in file</span><kbd>Ctrl / ⌘ + F</kbd></div>
         <h3>Interactive input and hosting</h3>
         <p>Python <code>input()</code> uses a shared-memory bridge between the Worker and terminal. Browsers require a secure, cross-origin-isolated page for this feature. Cloudflare Pages uses the included <code>_headers</code> file. GitHub Pages uses the local COI service worker and may reload once after its first install. Also see <code>README.md</code> for deployment and local development steps.</p>
         <h3>Install on a phone</h3>
         <p>Choose <strong>Install</strong> in the top bar when available. On iPhone or iPad, open this page in Safari, tap <strong>Share</strong>, then choose <strong>Add to Home Screen</strong>. The offline page is available after installation, but the editor and Python runtime load from public CDNs and may need an internet connection.</p>
+        <h3>Jupyter notebooks</h3>
+        <p>Use the <strong>+</strong> button to create a <code>.ipynb</code> notebook, or use Import to open one. Add Python or Markdown cells, run one cell or Run all, and download the notebook as standard nbformat 4 JSON. Code cells share the in-browser Pyodide session. Text output and errors are supported; rich widgets and arbitrary HTML output are not. Python <code>input()</code> still uses the integrated terminal.</p>
         <h3>Try a sample</h3><p>Choose “Examples” above the editor for beginner programs, loops, input, and Persian text.</p>
       </div>
       <div class="modal-actions"><button class="primary-button" value="close" type="submit">Got it</button></div>

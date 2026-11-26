@@ -1,8 +1,0 @@
-# Technical references
-
-- **Pyodide standard streams** — https://pyodide.org/en/stable/usage/streams.html. `setStdin()` supports a synchronous `read(buffer)` callback that fills a `Uint8Array`; Pyodide's documentation demonstrates blocking a Web Worker with `Atomics.wait()` and checking interrupts while waiting. The documented callback can return UTF-8 bytes for stdin.
-- **Pyodide in a Web Worker** — https://pyodide.org/en/stable/usage/webworker.html. Pyodide's ES module runtime requires a module Worker; running Python in a Worker avoids blocking the browser UI thread.
-- **Pyodide interrupts** — https://pyodide.org/en/stable/usage/keyboard-interrupts.html. Worker interrupts use a `SharedArrayBuffer` passed to `setInterruptBuffer()`; writing `2` requests SIGINT/KeyboardInterrupt. The docs state that server response headers are required for shared memory.
-- **SharedArrayBuffer requirements** — https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer. Shared memory use in the page requires a secure context and cross-origin isolation; browsers expose `crossOriginIsolated` to check it.
-- **Cloudflare Pages headers** — https://developers.cloudflare.com/pages/configuration/headers/. Static custom response headers can be declared in a `_headers` file in the published output.
-- **GitHub Pages isolation workaround** — https://github.com/gzuidhof/coi-serviceworker. The project describes a self-hosted service-worker approach for hosts without configurable COOP/COEP headers and notes that first installation may reload the page once; the worker file must be same-origin and served from HTTPS or localhost.

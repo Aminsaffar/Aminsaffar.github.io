@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pandas Tutorial — DataFrames, CSV/Excel & Filtering</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --accent: #3b82f6;
+      --accent2: #60a5fa;
+      --green: #34d399;
+      --orange: #fbbf24;
+      --pink: #f472b6;
+      --code-bg: #0d1117;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 16px;
+    }
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    header h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.6rem;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    nav {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    nav h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.8rem;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.2rem;
+    }
+
+    nav a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    nav a:hover { text-decoration: underline; }
+
+    h2 {
+      font-size: 1.55rem;
+      margin: 2.8rem 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin: 1.8rem 0 0.7rem;
+      color: var(--accent2);
+    }
+
+    p { margin-bottom: 1rem; color: #c5d0e0; }
+
+    ul, ol {
+      margin: 0.6rem 0 1.2rem 1.5rem;
+      color: #c5d0e0;
+    }
+
+    li { margin-bottom: 0.35rem; }
+
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      background: var(--surface2);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: var(--orange);
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem 1.3rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.4rem;
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: #e6edf3;
+      font-size: inherit;
+    }
+
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .number  { color: #79c0ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+    .output  { color: #7ee787; }
+
+    .note {
+      background: rgba(59, 130, 246, 0.12);
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.2rem 0;
+      color: #b8d0f5;
+    }
+
+    .tip {
+      background: rgba(52, 211, 153, 0.1);
+      border-left: 4px solid var(--green);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.2rem 0;
+      color: #a7f3d0;
+    }
+
+    .warning {
+      background: rgba(251, 191, 36, 0.1);
+      border-left: 4px solid var(--orange);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.2rem 0;
+      color: #fde68a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface2);
+      color: var(--accent2);
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+
+    .section { margin-bottom: 1rem; }
+
+    footer {
+      margin-top: 4rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.8rem; }
+      .container { padding: 1.2rem 1rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Pandas Tutorial</h1>
+      <p>DataFrames • Reading CSV / Excel • Filtering • Operations</p>
+    </header>
+
+    <nav>
+      <h3>Contents</h3>
+      <ul>
+        <li><a href="#intro">1. Introduction</a></li>
+        <li><a href="#install">2. Installation</a></li>
+        <li><a href="#read">3. Reading Files</a></li>
+        <li><a href="#explore">4. Exploring Data</a></li>
+        <li><a href="#select">5. Selecting Data</a></li>
+        <li><a href="#filter">6. Filtering</a></li>
+        <li><a href="#ops">7. Operations</a></li>
+        <li><a href="#missing">8. Missing Data</a></li>
+        <li><a href="#groupby">9. GroupBy</a></li>
+        <li><a href="#merge">10. Merge &amp; Join</a></li>
+        <li><a href="#write">11. Writing Files</a></li>
+        <li><a href="#examples">12. Worked Examples</a></li>
+        <li><a href="#cheatsheet">13. Cheat Sheet</a></li>
+      </ul>
+    </nav>
+
+    <!-- 1. INTRODUCTION -->
+    <section id="intro" class="section">
+      <h2>1. Introduction</h2>
+      <p>
+        <strong>Pandas</strong> is the most popular Python library for data analysis and manipulation.
+        It provides two main data structures:
+      </p>
+      <ul>
+        <li><strong>Series</strong> — 1-dimensional labeled array</li>
+        <li><strong>DataFrame</strong> — 2-dimensional table (like an Excel sheet or SQL table)</li>
+      </ul>
+      <p>
+        Pandas is built on top of NumPy and is excellent for reading CSV/Excel files,
+        cleaning data, filtering, aggregating, and preparing data for analysis or machine learning.
+      </p>
+    </section>
+
+    <!-- 2. INSTALLATION -->
+    <section id="install" class="section">
+      <h2>2. Installation &amp; Import</h2>
+      <pre><code><span class="comment"># Install (once)</span>
+pip install pandas openpyxl   <span class="comment"># openpyxl needed for Excel (.xlsx)</span>
+
+<span class="comment"># Import convention</span>
+<span class="keyword">import</span> pandas <span class="keyword">as</span> pd
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np</code></pre>
+      <div class="tip">
+        Always use the alias <code>pd</code>. Almost every tutorial and Stack Overflow answer expects it.
+      </div>
+    </section>
+
+    <!-- 3. READING FILES -->
+    <section id="read" class="section">
+      <h2>3. Reading CSV &amp; Excel Files</h2>
+
+      <h3>Read CSV</h3>
+      <pre><code><span class="comment"># Basic</span>
+df = pd.read_csv(<span class="string">"data.csv"</span>)
+
+<span class="comment"># Common options</span>
+df = pd.read_csv(
+    <span class="string">"data.csv"</span>,
+    sep=<span class="string">","</span>,                 <span class="comment"># delimiter (default is comma)</span>
+    header=<span class="number">0</span>,               <span class="comment"># row number to use as column names</span>
+    index_col=<span class="number">0</span>,            <span class="comment"># use first column as index</span>
+    usecols=[<span class="string">"name"</span>, <span class="string">"age"</span>, <span class="string">"salary"</span>],  <span class="comment"># only these columns</span>
+    nrows=<span class="number">1000</span>,             <span class="comment"># read only first 1000 rows</span>
+    na_values=[<span class="string">"NA"</span>, <span class="string">"?"</span>, <span class="string">""</span>],  <span class="comment"># treat these as missing</span>
+    parse_dates=[<span class="string">"date"</span>],   <span class="comment"># parse date column</span>
+    encoding=<span class="string">"utf-8"</span>
+)</code></pre>
+
+      <h3>Read Excel</h3>
+      <pre><code><span class="comment"># Single sheet</span>
+df = pd.read_excel(<span class="string">"data.xlsx"</span>)
+
+<span class="comment"># Specific sheet</span>
+df = pd.read_excel(<span class="string">"data.xlsx"</span>, sheet_name=<span class="string">"Sales"</span>)
+
+<span class="comment"># Multiple sheets → dict of DataFrames</span>
+dfs = pd.read_excel(<span class="string">"data.xlsx"</span>, sheet_name=[<span class="string">"Sales"</span>, <span class="string">"Customers"</span>])
+<span class="comment"># or sheet_name=None to load all sheets</span>
+
+<span class="comment"># Useful options</span>
+df = pd.read_excel(
+    <span class="string">"data.xlsx"</span>,
+    sheet_name=<span class="number">0</span>,           <span class="comment"># first sheet (or name)</span>
+    header=<span class="number">0</span>,
+    usecols=<span class="string">"A:D"</span>,         <span class="comment"># columns A to D</span>
+    skiprows=<span class="number">2</span>,            <span class="comment"># skip first 2 rows</span>
+    nrows=<span class="number">500</span>
+)</code></pre>
+
+      <div class="note">
+        For <code>.xlsx</code> files you need the <code>openpyxl</code> engine (installed above).<br>
+        For old <code>.xls</code> files use <code>engine="xlrd"</code> (and install xlrd).
+      </div>
+
+      <h3>Other common readers</h3>
+      <pre><code>pd.read_json(<span class="string">"data.json"</span>)
+pd.read_parquet(<span class="string">"data.parquet"</span>)   <span class="comment"># fast &amp; efficient</span>
+pd.read_sql(<span class="string">"SELECT * FROM table"</span>, connection)
+pd.read_clipboard()               <span class="comment"># paste from Excel / Google Sheets</span></code></pre>
+    </section>
+
+    <!-- 4. EXPLORING -->
+    <section id="explore" class="section">
+      <h2>4. Exploring a DataFrame</h2>
+      <pre><code>df = pd.read_csv(<span class="string">"employees.csv"</span>)
+
+df.head()          <span class="comment"># first 5 rows</span>
+df.head(<span class="number">10</span>)        <span class="comment"># first 10 rows</span>
+df.tail()          <span class="comment"># last 5 rows</span>
+df.sample(<span class="number">5</span>)       <span class="comment"># 5 random rows</span>
+
+df.shape           <span class="comment"># (rows, columns)</span>
+df.columns         <span class="comment"># column names</span>
+df.dtypes          <span class="comment"># data types of each column</span>
+df.info()          <span class="comment"># summary: non-null counts + dtypes</span>
+df.describe()      <span class="comment"># statistics for numeric columns</span>
+df.describe(include=<span class="string">"all"</span>)  <span class="comment"># include object columns too</span>
+
+df[<span class="string">"department"</span>].unique()      <span class="comment"># unique values</span>
+df[<span class="string">"department"</span>].nunique()     <span class="comment"># number of unique values</span>
+df[<span class="string">"department"</span>].value_counts() <span class="comment"># frequency count</span></code></pre>
+    </section>
+
+    <!-- 5. SELECTING -->
+    <section id="select" class="section">
+      <h2>5. Selecting Columns &amp; Rows</h2>
+
+      <h3>Select columns</h3>
+      <pre><code><span class="comment"># Single column → Series</span>
+df[<span class="string">"name"</span>]
+df.name                <span class="comment"># also works if column name is a valid identifier</span>
+
+<span class="comment"># Multiple columns → DataFrame</span>
+df[[<span class="string">"name"</span>, <span class="string">"age"</span>, <span class="string">"salary"</span>]]</code></pre>
+
+      <h3>Select rows by position (iloc) or label (loc)</h3>
+      <pre><code><span class="comment"># iloc → integer position</span>
+df.iloc[<span class="number">0</span>]            <span class="comment"># first row</span>
+df.iloc[<span class="number">0</span>:<span class="number">5</span>]          <span class="comment"># first 5 rows</span>
+df.iloc[<span class="number">0</span>:<span class="number">5</span>, <span class="number">0</span>:<span class="number">3</span>]      <span class="comment"># first 5 rows, first 3 columns</span>
+df.iloc[:, [<span class="number">0</span>, <span class="number">2</span>]]     <span class="comment"># all rows, columns 0 and 2</span>
+
+<span class="comment"># loc → label based</span>
+df.loc[<span class="number">0</span>]             <span class="comment"># row with index label 0</span>
+df.loc[<span class="number">0</span>:<span class="number">4</span>, [<span class="string">"name"</span>, <span class="string">"salary"</span>]]
+df.loc[df[<span class="string">"age"</span>] > <span class="number">30</span>, <span class="string">"name"</span>]  <span class="comment"># names of people older than 30</span></code></pre>
+
+      <div class="warning">
+        <code>iloc</code> uses integer positions (0-based).<br>
+        <code>loc</code> uses the actual index labels (can be numbers, strings, dates…).
+      </div>
+    </section>
+
+    <!-- 6. FILTERING -->
+    <section id="filter" class="section">
+      <h2>6. Filtering (Boolean Indexing)</h2>
+      <p>This is one of the most common operations in Pandas.</p>
+
+      <pre><code><span class="comment"># Simple condition</span>
+df[df[<span class="string">"age"</span>] > <span class="number">30</span>]
+
+<span class="comment"># Multiple conditions (use &amp; | ~  and parentheses!)</span>
+df[(df[<span class="string">"age"</span>] > <span class="number">30</span>) &amp; (df[<span class="string">"salary"</span>] > <span class="number">50000</span>)]
+df[(df[<span class="string">"department"</span>] == <span class="string">"Sales"</span>) | (df[<span class="string">"department"</span>] == <span class="string">"Marketing"</span>)]
+
+<span class="comment"># isin — cleaner for multiple values</span>
+df[df[<span class="string">"department"</span>].isin([<span class="string">"Sales"</span>, <span class="string">"Marketing"</span>, <span class="string">"HR"</span>])]
+
+<span class="comment"># String methods</span>
+df[df[<span class="string">"name"</span>].str.startswith(<span class="string">"A"</span>)]
+df[df[<span class="string">"email"</span>].str.contains(<span class="string">"@gmail.com"</span>, na=<span class="keyword">False</span>)]
+df[df[<span class="string">"city"</span>].str.contains(<span class="string">"New|Los"</span>, case=<span class="keyword">False</span>, na=<span class="keyword">False</span>)]
+
+<span class="comment"># Between</span>
+df[df[<span class="string">"age"</span>].between(<span class="number">25</span>, <span class="number">40</span>)]
+
+<span class="comment"># Query method (nice for complex filters)</span>
+df.query(<span class="string">"age > 30 and salary > 50000"</span>)
+df.query(<span class="string">"department == 'Sales' and age >= 25"</span>)</code></pre>
+
+      <div class="tip">
+        Always put each condition in parentheses when combining with <code>&amp;</code> or <code>|</code>.
+      </div>
+    </section>
+
+    <!-- 7. OPERATIONS -->
+    <section id="ops" class="section">
+      <h2>7. Common Operations</h2>
+
+      <h3>Add / modify columns</h3>
+      <pre><code>df[<span class="string">"bonus"</span>] = df[<span class="string">"salary"</span>] * <span class="number">0.1</span>
+df[<span class="string">"full_name"</span>] = df[<span class="string">"first"</span>] + <span class="string">" "</span> + df[<span class="string">"last"</span>]
+df[<span class="string">"age_group"</span>] = np.where(df[<span class="string">"age"</span>] >= <span class="number">40</span>, <span class="string">"Senior"</span>, <span class="string">"Junior"</span>)
+
+<span class="comment"># Using assign (returns new DataFrame)</span>
+df = df.assign(
+    tax = df[<span class="string">"salary"</span>] * <span class="number">0.2</span>,
+    net  = lambda x: x[<span class="string">"salary"</span>] - x[<span class="string">"tax"</span>]
+)</code></pre>
+
+      <h3>Rename columns</h3>
+      <pre><code>df = df.rename(columns={<span class="string">"old_name"</span>: <span class="string">"new_name"</span>, <span class="string">"sal"</span>: <span class="string">"salary"</span>})
+df.columns = [c.lower().strip() <span class="keyword">for</span> c <span class="keyword">in</span> df.columns]  <span class="comment"># normalize</span></code></pre>
+
+      <h3>Drop columns / rows</h3>
+      <pre><code>df = df.drop(columns=[<span class="string">"temp"</span>, <span class="string">"notes"</span>])
+df = df.drop(index=[<span class="number">0</span>, <span class="number">5</span>, <span class="number">10</span>])
+df = df.dropna()                     <span class="comment"># drop rows with any NaN</span>
+df = df.drop_duplicates()
+df = df.drop_duplicates(subset=[<span class="string">"email"</span>])</code></pre>
+
+      <h3>Sorting</h3>
+      <pre><code>df.sort_values(<span class="string">"salary"</span>, ascending=<span class="keyword">False</span>)
+df.sort_values([<span class="string">"department"</span>, <span class="string">"salary"</span>], ascending=[<span class="keyword">True</span>, <span class="keyword">False</span>])
+df.sort_index()</code></pre>
+
+      <h3>Apply custom functions</h3>
+      <pre><code>df[<span class="string">"name_len"</span>] = df[<span class="string">"name"</span>].apply(len)
+df[<span class="string">"salary_k"</span>] = df[<span class="string">"salary"</span>].apply(<span class="keyword">lambda</span> x: f<span class="string">"{x/1000:.1f}k"</span>)
+
+<span class="comment"># Apply to whole row</span>
+df[<span class="string">"desc"</span>] = df.apply(
+    <span class="keyword">lambda</span> row: f<span class="string">"{row['name']} works in {row['department']}"</span>,
+    axis=<span class="number">1</span>
+)</code></pre>
+    </section>
+
+    <!-- 8. MISSING DATA -->
+    <section id="missing" class="section">
+      <h2>8. Handling Missing Data</h2>
+      <pre><code>df.isna()                    <span class="comment"># True where missing</span>
+df.isna().sum()              <span class="comment"># count missing per column</span>
+df.notna()
+
+<span class="comment"># Drop</span>
+df.dropna()                  <span class="comment"># drop any row with NaN</span>
+df.dropna(subset=[<span class="string">"salary"</span>]) <span class="comment"># only if salary is missing</span>
+df.dropna(axis=<span class="number">1</span>)            <span class="comment"># drop columns with any NaN</span>
+
+<span class="comment"># Fill</span>
+df[<span class="string">"age"</span>] = df[<span class="string">"age"</span>].fillna(df[<span class="string">"age"</span>].mean())
+df[<span class="string">"department"</span>] = df[<span class="string">"department"</span>].fillna(<span class="string">"Unknown"</span>)
+df.fillna(method=<span class="string">"ffill"</span>)     <span class="comment"># forward fill</span>
+df.fillna(method=<span class="string">"bfill"</span>)     <span class="comment"># backward fill</span>
+
+<span class="comment"># Replace specific values</span>
+df.replace({<span class="string">"NA"</span>: np.nan, <span class="string">"?"</span>: np.nan}, inplace=<span class="keyword">True</span>)</code></pre>
+    </section>
+
+    <!-- 9. GROUPBY -->
+    <section id="groupby" class="section">
+      <h2>9. GroupBy &amp; Aggregation</h2>
+      <pre><code><span class="comment"># Basic</span>
+df.groupby(<span class="string">"department"</span>)[<span class="string">"salary"</span>].mean()
+df.groupby(<span class="string">"department"</span>)[<span class="string">"salary"</span>].agg([<span class="string">"mean"</span>, <span class="string">"min"</span>, <span class="string">"max"</span>, <span class="string">"count"</span>])
+
+<span class="comment"># Multiple columns</span>
+df.groupby(<span class="string">"department"</span>).agg({
+    <span class="string">"salary"</span>: <span class="string">"mean"</span>,
+    <span class="string">"age"</span>: [<span class="string">"min"</span>, <span class="string">"max"</span>],
+    <span class="string">"name"</span>: <span class="string">"count"</span>
+})
+
+<span class="comment"># Named aggregations (clean)</span>
+df.groupby(<span class="string">"department"</span>).agg(
+    avg_salary=(<span class="string">"salary"</span>, <span class="string">"mean"</span>),
+    max_age=(<span class="string">"age"</span>, <span class="string">"max"</span>),
+    employees=(<span class="string">"name"</span>, <span class="string">"count"</span>)
+)
+
+<span class="comment"># Transform (keeps original shape)</span>
+df[<span class="string">"dept_avg_salary"</span>] = df.groupby(<span class="string">"department"</span>)[<span class="string">"salary"</span>].transform(<span class="string">"mean"</span>)</code></pre>
+    </section>
+
+    <!-- 10. MERGE -->
+    <section id="merge" class="section">
+      <h2>10. Merge, Join &amp; Concat</h2>
+      <pre><code><span class="comment"># Concatenate (stack rows or columns)</span>
+pd.concat([df1, df2], axis=<span class="number">0</span>, ignore_index=<span class="keyword">True</span>)  <span class="comment"># stack vertically</span>
+pd.concat([df1, df2], axis=<span class="number">1</span>)                    <span class="comment"># side by side</span>
+
+<span class="comment"># Merge (SQL-style joins)</span>
+pd.merge(left, right, on=<span class="string">"id"</span>, how=<span class="string">"inner"</span>)
+pd.merge(left, right, on=<span class="string">"id"</span>, how=<span class="string">"left"</span>)
+pd.merge(left, right, left_on=<span class="string">"emp_id"</span>, right_on=<span class="string">"id"</span>, how=<span class="string">"outer"</span>)
+
+<span class="comment"># Join on index</span>
+left.join(right, how=<span class="string">"left"</span>)</code></pre>
+
+      <table>
+        <thead>
+          <tr><th>how=</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>inner</code></td><td>Only matching keys (default)</td></tr>
+          <tr><td><code>left</code></td><td>All from left + matches from right</td></tr>
+          <tr><td><code>right</code></td><td>All from right + matches from left</td></tr>
+          <tr><td><code>outer</code></td><td>All keys from both</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 11. WRITING -->
+    <section id="write" class="section">
+      <h2>11. Writing to Files</h2>
+      <pre><code><span class="comment"># CSV</span>
+df.to_csv(<span class="string">"output.csv"</span>, index=<span class="keyword">False</span>)
+df.to_csv(<span class="string">"output.csv"</span>, index=<span class="keyword">False</span>, sep=<span class="string">";"</span>, encoding=<span class="string">"utf-8"</span>)
+
+<span class="comment"># Excel</span>
+df.to_excel(<span class="string">"output.xlsx"</span>, index=<span class="keyword">False</span>, sheet_name=<span class="string">"Results"</span>)
+
+<span class="comment"># Multiple sheets</span>
+<span class="keyword">with</span> pd.ExcelWriter(<span class="string">"report.xlsx"</span>) <span class="keyword">as</span> writer:
+    df1.to_excel(writer, sheet_name=<span class="string">"Sales"</span>, index=<span class="keyword">False</span>)
+    df2.to_excel(writer, sheet_name=<span class="string">"Summary"</span>, index=<span class="keyword">False</span>)
+
+<span class="comment"># Other formats</span>
+df.to_json(<span class="string">"data.json"</span>, orient=<span class="string">"records"</span>)
+df.to_parquet(<span class="string">"data.parquet"</span>)
+df.to_clipboard(index=<span class="keyword">False</span>)   <span class="comment"># copy to clipboard for Excel</span></code></pre>
+    </section>
+
+    <!-- 12. WORKED EXAMPLES -->
+    <section id="examples" class="section">
+      <h2>12. Worked Examples</h2>
+
+      <h3>Example 1 — Clean &amp; filter employee data</h3>
+      <pre><code>df = pd.read_csv(<span class="string">"employees.csv"</span>)
+
+<span class="comment"># Clean</span>
+df[<span class="string">"salary"</span>] = pd.to_numeric(df[<span class="string">"salary"</span>], errors=<span class="string">"coerce"</span>)
+df = df.dropna(subset=[<span class="string">"salary"</span>, <span class="string">"department"</span>])
+df[<span class="string">"name"</span>] = df[<span class="string">"name"</span>].str.title().str.strip()
+
+<span class="comment"># Filter high earners in Sales or Engineering</span>
+result = df[
+    (df[<span class="string">"salary"</span>] > <span class="number">70000</span>) &amp;
+    (df[<span class="string">"department"</span>].isin([<span class="string">"Sales"</span>, <span class="string">"Engineering"</span>]))
+].sort_values(<span class="string">"salary"</span>, ascending=<span class="keyword">False</span>)
+
+print(result[[<span class="string">"name"</span>, <span class="string">"department"</span>, <span class="string">"salary"</span>]].head(<span class="number">10</span>))</code></pre>
+
+      <h3>Example 2 — Summary by department</h3>
+      <pre><code>summary = (
+    df.groupby(<span class="string">"department"</span>)
+      .agg(
+          employees=(<span class="string">"name"</span>, <span class="string">"count"</span>),
+          avg_salary=(<span class="string">"salary"</span>, <span class="string">"mean"</span>),
+          median_salary=(<span class="string">"salary"</span>, <span class="string">"median"</span>),
+          max_salary=(<span class="string">"salary"</span>, <span class="string">"max"</span>)
+      )
+      .round(<span class="number">0</span>)
+      .sort_values(<span class="string">"avg_salary"</span>, ascending=<span class="keyword">False</span>)
+)
+
+print(summary)
+summary.to_excel(<span class="string">"department_summary.xlsx"</span>)</code></pre>
+
+      <h3>Example 3 — Read Excel, process, write multiple sheets</h3>
+      <pre><code><span class="comment"># Read</span>
+sales = pd.read_excel(<span class="string">"raw_data.xlsx"</span>, sheet_name=<span class="string">"Sales"</span>)
+customers = pd.read_excel(<span class="string">"raw_data.xlsx"</span>, sheet_name=<span class="string">"Customers"</span>)
+
+<span class="comment"># Merge</span>
+merged = pd.merge(sales, customers, on=<span class="string">"customer_id"</span>, how=<span class="string">"left"</span>)
+
+<span class="comment"># Add month column</span>
+merged[<span class="string">"month"</span>] = pd.to_datetime(merged[<span class="string">"date"</span>]).dt.to_period(<span class="string">"M"</span>)
+
+<span class="comment"># Monthly totals</span>
+monthly = merged.groupby(<span class="string">"month"</span>)[<span class="string">"amount"</span>].sum().reset_index()
+
+<span class="comment"># Write report</span>
+<span class="keyword">with</span> pd.ExcelWriter(<span class="string">"sales_report.xlsx"</span>) <span class="keyword">as</span> writer:
+    merged.to_excel(writer, sheet_name=<span class="string">"All Sales"</span>, index=<span class="keyword">False</span>)
+    monthly.to_excel(writer, sheet_name=<span class="string">"Monthly"</span>, index=<span class="keyword">False</span>)</code></pre>
+
+      <h3>Example 4 — Quick filtering patterns</h3>
+      <pre><code><span class="comment"># Top 10 highest salaries</span>
+df.nlargest(<span class="number">10</span>, <span class="string">"salary"</span>)
+
+<span class="comment"># Rows where salary is above department average</span>
+df[<span class="string">"dept_avg"</span>] = df.groupby(<span class="string">"department"</span>)[<span class="string">"salary"</span>].transform(<span class="string">"mean"</span>)
+above_avg = df[df[<span class="string">"salary"</span>] > df[<span class="string">"dept_avg"</span>]]
+
+<span class="comment"># Filter with query + variable</span>
+min_sal = <span class="number">60000</span>
+df.query(<span class="string">"salary >= @min_sal and department == 'Engineering'"</span>)</code></pre>
+    </section>
+
+    <!-- 13. CHEAT SHEET -->
+    <section id="cheatsheet" class="section">
+      <h2>13. Quick Cheat Sheet</h2>
+      <table>
+        <thead>
+          <tr><th>Task</th><th>Code</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Read CSV</td><td><code>pd.read_csv("file.csv")</code></td></tr>
+          <tr><td>Read Excel</td><td><code>pd.read_excel("file.xlsx")</code></td></tr>
+          <tr><td>First rows</td><td><code>df.head()</code></td></tr>
+          <tr><td>Info</td><td><code>df.info()</code> / <code>df.describe()</code></td></tr>
+          <tr><td>Select columns</td><td><code>df[["col1", "col2"]]</code></td></tr>
+          <tr><td>Filter</td><td><code>df[df["age"] > 30]</code></td></tr>
+          <tr><td>Multiple filters</td><td><code>df[(cond1) &amp; (cond2)]</code></td></tr>
+          <tr><td>isin</td><td><code>df[df["col"].isin([...])]</code></td></tr>
+          <tr><td>Sort</td><td><code>df.sort_values("col", ascending=False)</code></td></tr>
+          <tr><td>GroupBy</td><td><code>df.groupby("col")["val"].mean()</code></td></tr>
+          <tr><td>Add column</td><td><code>df["new"] = ...</code></td></tr>
+          <tr><td>Drop column</td><td><code>df.drop(columns=["col"])</code></td></tr>
+          <tr><td>Missing count</td><td><code>df.isna().sum()</code></td></tr>
+          <tr><td>Fill missing</td><td><code>df["col"].fillna(value)</code></td></tr>
+          <tr><td>Merge</td><td><code>pd.merge(left, right, on="key")</code></td></tr>
+          <tr><td>Write CSV</td><td><code>df.to_csv("out.csv", index=False)</code></td></tr>
+          <tr><td>Write Excel</td><td><code>df.to_excel("out.xlsx", index=False)</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      <p>Pandas Tutorial — DataFrames, CSV/Excel &amp; Filtering</p>
+      <p style="margin-top:0.4rem; font-size:0.85rem;">
+        Open this file in any browser. Copy the code into a Python environment with pandas installed.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

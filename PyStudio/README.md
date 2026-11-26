@@ -41,11 +41,14 @@ The `_headers` file is specific to Cloudflare Pages; the self-hosted service wor
 - CodeMirror 6 with Python support, line numbers, indentation, completion, bracket matching, folding, search, multiple file tabs, and keyboard shortcuts.
 - Pyodide Web Worker with captured standard output/errors, real `input()` through the integrated terminal, interruption/timeout recovery, and compatible `micropip` installation.
 - IndexedDB projects/files with autosave, restore, create, rename, delete, import, switching, and downloads.
+- Optional Jupyter Notebook (`.ipynb`) creation/import/export with code and Markdown cells, per-cell or Run All execution through the same local Pyodide session, and text outputs. Creating a file still defaults to `.py`.
 - Terminal history, ANSI colors, copy/download/clear controls, execution timing/status, and mobile-friendly interactive input.
 - Resizable editor/terminal panels on desktop, Editor/Terminal tabs on mobile, dark/light themes, examples, help, and beginner exercises.
 
 ## Important limitations
 
 Cross-origin isolation is required for the shared-memory stdin bridge and interrupt buffer. If `crossOriginIsolated` is false, the app disables execution and explains how to enable it rather than falling back to `prompt()`. Pyodide packages that need native extensions unavailable in WebAssembly will not install. Browser-based execution is not a complete security sandbox: untrusted Python can use CPU and memory, and Pyodide exposes browser-adjacent and network-capable APIs. Each run has a 30-second limit, terminal history is capped at 250,000 characters, and Stop/timeout terminate and recreate the Worker. Browsers do not expose a portable hard per-worker memory quota. Only run code you trust. Projects are local to the current browser profile and are not synced or backed up automatically.
+
+Notebook files use Jupyter nbformat 4 JSON and execute in the browser; PyStudio does not start or connect to a Jupyter server or remote kernel. Standard code/Markdown cells and plain-text stream, error, and simple expression outputs are supported. Rich widgets, arbitrary HTML/image outputs, and kernel-specific extensions are not rendered. `input()` continues to use the integrated terminal, and cell variables persist in the shared Pyodide session until the runtime is restarted.
 
 Keyboard shortcut: **Ctrl/⌘ + Enter** runs the current file. In the terminal, Enter submits a Python input line and the up/down arrows recall previously submitted inputs.

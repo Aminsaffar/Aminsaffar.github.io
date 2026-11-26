@@ -8,6 +8,7 @@ print(f"Your number multiplied by 2 is {number * 2}")
 const DB_NAME = 'pystudio-browser-ide';
 const DB_VERSION = 1;
 const AUTOSAVE_DELAY = 350;
+import { parseNotebook } from './notebook-format.js';
 
 function makeId() {
   return globalThis.crypto?.randomUUID?.() || `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -108,12 +109,12 @@ export class ProjectManager {
     this.emit('file-switched');
   }
 
-  async createFile(name = 'untitled.py') {
+  async createFile(name = 'untitled.py', code = '') {
     const project = this.activeProject;
     if (!project) throw new Error('Create a project first.');
     const safeName = this.normalizeFileName(name);
     if (project.files.some((file) => file.name.toLowerCase() === safeName.toLowerCase())) throw new Error(`A file named ${safeName} already exists.`);
-    const file = { id: makeId(), name: safeName, code: '', updatedAt: Date.now() };
+    const file = { id: makeId(), name: safeName, code: String(code ?? ''), updatedAt: Date.now() };
     project.files.push(file);
     project.activeFileId = file.id;
     project.updatedAt = Date.now();
@@ -122,10 +123,10 @@ export class ProjectManager {
     return file;
   }
 
-  normalizeFileName(name) {
+  normalizeFileName(name, fallbackExtension = '.py') {
     let result = String(name || '').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').slice(0, 60);
-    if (!result) result = 'untitled.py';
-    if (!result.toLowerCase().endsWith('.py')) result += '.py';
+    if (!result) result = `untitled${fallbackExtension}`;
+    if (!/\.(?:py|ipynb)$/i.test(result)) result += fallbackExtension;
     return result;
   }
 
@@ -133,7 +134,10 @@ export class ProjectManager {
     const project = this.activeProject;
     const file = project?.files.find((entry) => entry.id === id);
     if (!file) throw new Error('That file no longer exists.');
-    const safeName = this.normalizeFileName(name);
+    const currentExtension = file.name.match(/\.(?:py|ipynb)$/i)?.[0].toLowerCase() || '.py';
+    const requestedExtension = String(name || '').match(/\.(?:py|ipynb)$/i)?.[0].toLowerCase();
+    if (requestedExtension && requestedExtension !== currentExtension) throw new Error('Renaming cannot change a file type. Create a new file or import it instead.');
+    const safeName = this.normalizeFileName(name, currentExtension);
     if (project.files.some((entry) => entry.id !== id && entry.name.toLowerCase() === safeName.toLowerCase())) throw new Error(`A file named ${safeName} already exists.`);
     file.name = safeName;
     file.updatedAt = Date.now();
@@ -156,9 +160,13 @@ export class ProjectManager {
 
   async importFile(file) {
     if (!file) return null;
+    const extension = String(file.name || '').toLowerCase().match(/\.(?:py|ipynb)$/)?.[0];
+    if (!extension) throw new Error('Choose a .py Python file or a .ipynb Jupyter notebook.');
     const code = await file.text();
+    if (extension === '.ipynb') parseNotebook(code);
     const name = this.normalizeFileName(file.name);
     const project = this.activeProject;
+    if (!project) throw new Error('Create a project before importing a file.');
     const existing = project?.files.find((entry) => entry.name.toLowerCase() === name.toLowerCase());
     if (existing) {
       existing.code = code;

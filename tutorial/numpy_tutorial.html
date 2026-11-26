@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NumPy Tutorial — Arrays & Linear Algebra</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --accent: #3b82f6;
+      --accent2: #60a5fa;
+      --green: #34d399;
+      --orange: #fbbf24;
+      --pink: #f472b6;
+      --code-bg: #0d1117;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 16px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    header h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent2), var(--green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.6rem;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    nav {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    nav h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.8rem;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.2rem;
+    }
+
+    nav a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    nav a:hover { text-decoration: underline; }
+
+    h2 {
+      font-size: 1.55rem;
+      margin: 2.8rem 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin: 1.8rem 0 0.7rem;
+      color: var(--accent2);
+    }
+
+    p { margin-bottom: 1rem; color: #c5d0e0; }
+
+    ul, ol {
+      margin: 0.6rem 0 1.2rem 1.5rem;
+      color: #c5d0e0;
+    }
+
+    li { margin-bottom: 0.35rem; }
+
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      background: var(--surface2);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: var(--orange);
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem 1.3rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.4rem;
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: #e6edf3;
+      font-size: inherit;
+    }
+
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .number  { color: #79c0ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+    .output  { color: #7ee787; }
+
+    .note {
+      background: rgba(59, 130, 246, 0.12);
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.2rem 0;
+      color: #b8d0f5;
+    }
+
+    .tip {
+      background: rgba(52, 211, 153, 0.1);
+      border-left: 4px solid var(--green);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.2rem 0;
+      color: #a7f3d0;
+    }
+
+    .warning {
+      background: rgba(251, 191, 36, 0.1);
+      border-left: 4px solid var(--orange);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.2rem 0;
+      color: #fde68a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface2);
+      color: var(--accent2);
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+
+    .section {
+      margin-bottom: 1rem;
+    }
+
+    footer {
+      margin-top: 4rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.8rem; }
+      .container { padding: 1.2rem 1rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>NumPy Tutorial</h1>
+      <p>Arrays, vectorized operations &amp; linear algebra — with practical examples</p>
+    </header>
+
+    <nav>
+      <h3>Contents</h3>
+      <ul>
+        <li><a href="#intro">1. Introduction</a></li>
+        <li><a href="#install">2. Installation</a></li>
+        <li><a href="#arrays">3. Creating Arrays</a></li>
+        <li><a href="#attrs">4. Array Attributes</a></li>
+        <li><a href="#ops">5. Basic Operations</a></li>
+        <li><a href="#index">6. Indexing &amp; Slicing</a></li>
+        <li><a href="#broadcast">7. Broadcasting</a></li>
+        <li><a href="#linalg">8. Linear Algebra</a></li>
+        <li><a href="#examples">9. Worked Examples</a></li>
+        <li><a href="#cheatsheet">10. Cheat Sheet</a></li>
+      </ul>
+    </nav>
+
+    <!-- 1. INTRODUCTION -->
+    <section id="intro" class="section">
+      <h2>1. Introduction</h2>
+      <p>
+        <strong>NumPy</strong> (Numerical Python) is the fundamental package for scientific computing in Python.
+        It provides a powerful N-dimensional array object and tools for working with these arrays.
+      </p>
+      <p>Why use NumPy instead of pure Python lists?</p>
+      <ul>
+        <li><strong>Speed</strong> — operations are implemented in C and vectorized</li>
+        <li><strong>Memory efficiency</strong> — contiguous blocks of typed data</li>
+        <li><strong>Convenience</strong> — broadcasting, linear algebra, random numbers, etc.</li>
+        <li><strong>Ecosystem</strong> — foundation for Pandas, SciPy, scikit-learn, PyTorch, TensorFlow</li>
+      </ul>
+    </section>
+
+    <!-- 2. INSTALLATION -->
+    <section id="install" class="section">
+      <h2>2. Installation &amp; Import</h2>
+      <pre><code><span class="comment"># Install (once)</span>
+pip install numpy
+
+<span class="comment"># Import convention (always use this)</span>
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np</code></pre>
+      <div class="tip">
+        Almost every scientific Python tutorial and library expects the alias <code>np</code>.
+      </div>
+    </section>
+
+    <!-- 3. CREATING ARRAYS -->
+    <section id="arrays" class="section">
+      <h2>3. Creating Arrays</h2>
+
+      <h3>From Python lists</h3>
+      <pre><code>a = np.array([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>])
+print(a)          <span class="comment"># [1 2 3 4 5]</span>
+
+b = np.array([[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>],
+              [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]])
+print(b)
+<span class="comment"># [[1 2 3]
+#  [4 5 6]]</span></code></pre>
+
+      <h3>Special constructors</h3>
+      <pre><code>np.zeros((<span class="number">3</span>, <span class="number">4</span>))          <span class="comment"># 3×4 array of 0.0</span>
+np.ones((<span class="number">2</span>, <span class="number">3</span>))           <span class="comment"># 2×3 array of 1.0</span>
+np.full((<span class="number">2</span>, <span class="number">2</span>), <span class="number">7</span>)        <span class="comment"># 2×2 filled with 7</span>
+np.eye(<span class="number">3</span>)                 <span class="comment"># 3×3 identity matrix</span>
+np.arange(<span class="number">0</span>, <span class="number">10</span>, <span class="number">2</span>)       <span class="comment"># [0 2 4 6 8]  (like range)</span>
+np.linspace(<span class="number">0</span>, <span class="number">1</span>, <span class="number">5</span>)      <span class="comment"># 5 equally spaced points from 0 to 1</span>
+np.random.rand(<span class="number">2</span>, <span class="number">3</span>)      <span class="comment"># 2×3 uniform [0, 1)</span>
+np.random.randn(<span class="number">3</span>, <span class="number">3</span>)     <span class="comment"># 3×3 standard normal</span>
+np.random.randint(<span class="number">0</span>, <span class="number">10</span>, (<span class="number">2</span>, <span class="number">4</span>))  <span class="comment"># integers</span></code></pre>
+
+      <h3>Data types</h3>
+      <pre><code>a = np.array([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], dtype=np.float64)
+b = np.array([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], dtype=np.int32)
+print(a.dtype, b.dtype)   <span class="comment"># float64 int32</span></code></pre>
+    </section>
+
+    <!-- 4. ATTRIBUTES -->
+    <section id="attrs" class="section">
+      <h2>4. Array Attributes</h2>
+      <pre><code>x = np.array([[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>],
+              [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]])
+
+print(x.shape)    <span class="comment"># (2, 3)   — dimensions</span>
+print(x.ndim)     <span class="comment"># 2        — number of axes</span>
+print(x.size)     <span class="comment"># 6        — total elements</span>
+print(x.dtype)    <span class="comment"># int64    — data type</span>
+print(x.itemsize) <span class="comment"># 8        — bytes per element</span></code></pre>
+
+      <div class="note">
+        <code>shape</code> is a tuple. For a 1-D vector of length 5 it is <code>(5,)</code>.
+        For a column vector of shape (5, 1) you must create it that way explicitly.
+      </div>
+    </section>
+
+    <!-- 5. BASIC OPERATIONS -->
+    <section id="ops" class="section">
+      <h2>5. Basic Operations (Vectorized)</h2>
+      <p>Arithmetic is element-wise by default:</p>
+      <pre><code>a = np.array([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])
+b = np.array([<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>])
+
+print(a + b)      <span class="comment"># [11 22 33]</span>
+print(a * b)      <span class="comment"># [10 40 90]   element-wise product</span>
+print(a ** <span class="number">2</span>)     <span class="comment"># [1 4 9]</span>
+print(np.sqrt(a)) <span class="comment"># [1. 1.414 1.732]</span>
+print(np.exp(a))  <span class="comment"># [2.718 7.389 20.085]</span>
+print(np.sin(a))  <span class="comment"># sin of each element</span></code></pre>
+
+      <h3>Aggregation</h3>
+      <pre><code>x = np.array([[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>],
+              [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]])
+
+print(x.sum())          <span class="comment"># 21</span>
+print(x.sum(axis=<span class="number">0</span>))    <span class="comment"># [5 7 9]  — sum down columns</span>
+print(x.sum(axis=<span class="number">1</span>))    <span class="comment"># [6 15]   — sum across rows</span>
+print(x.mean(), x.min(), x.max())
+print(x.std())          <span class="comment"># standard deviation</span></code></pre>
+    </section>
+
+    <!-- 6. INDEXING -->
+    <section id="index" class="section">
+      <h2>6. Indexing &amp; Slicing</h2>
+      <pre><code>a = np.arange(<span class="number">10</span>)          <span class="comment"># [0 1 2 3 4 5 6 7 8 9]</span>
+
+print(a[<span class="number">3</span>])               <span class="comment"># 3</span>
+print(a[<span class="number">2</span>:<span class="number">7</span>])            <span class="comment"># [2 3 4 5 6]</span>
+print(a[::<span class="number">2</span>])             <span class="comment"># [0 2 4 6 8]  every 2nd</span>
+print(a[::-<span class="number">1</span>])            <span class="comment"># reversed</span></code></pre>
+
+      <h3>2-D indexing</h3>
+      <pre><code>M = np.array([[<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>],
+              [<span class="number">40</span>, <span class="number">50</span>, <span class="number">60</span>],
+              [<span class="number">70</span>, <span class="number">80</span>, <span class="number">90</span>]])
+
+print(M[<span class="number">1</span>, <span class="number">2</span>])           <span class="comment"># 60</span>
+print(M[<span class="number">0</span>:<span class="number">2</span>, <span class="number">1</span>:])       <span class="comment"># [[20 30]
+                          #  [50 60]]</span>
+print(M[:, <span class="number">1</span>])           <span class="comment"># [20 50 80]  — column 1</span>
+print(M[<span class="number">1</span>, :])           <span class="comment"># [40 50 60]  — row 1</span></code></pre>
+
+      <h3>Boolean &amp; fancy indexing</h3>
+      <pre><code>a = np.array([<span class="number">1</span>, <span class="number">5</span>, <span class="number">2</span>, <span class="number">8</span>, <span class="number">3</span>, <span class="number">9</span>])
+mask = a > <span class="number">4</span>
+print(mask)               <span class="comment"># [False True False True False True]</span>
+print(a[mask])            <span class="comment"># [5 8 9]</span>
+print(a[a % <span class="number">2</span> == <span class="number">0</span>])     <span class="comment"># even numbers: [2 8]</span>
+
+<span class="comment"># Fancy indexing with integer arrays</span>
+idx = np.array([<span class="number">0</span>, <span class="number">2</span>, <span class="number">5</span>])
+print(a[idx])             <span class="comment"># [1 2 9]</span></code></pre>
+    </section>
+
+    <!-- 7. BROADCASTING -->
+    <section id="broadcast" class="section">
+      <h2>7. Broadcasting</h2>
+      <p>
+        Broadcasting lets NumPy operate on arrays of different shapes by “stretching” the smaller one
+        along missing dimensions (without actually copying data).
+      </p>
+      <pre><code>a = np.array([[<span class="number">1</span>],
+              [<span class="number">2</span>],
+              [<span class="number">3</span>]])          <span class="comment"># shape (3, 1)</span>
+b = np.array([<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>])  <span class="comment"># shape (3,)</span>
+
+print(a + b)
+<span class="comment"># [[11 21 31]
+#  [12 22 32]
+#  [13 23 33]]</span></code></pre>
+      <div class="note">
+        Rules (simplified): dimensions are compatible when they are equal or one of them is 1.
+        Arrays are aligned from the <em>right</em>.
+      </div>
+    </section>
+
+    <!-- 8. LINEAR ALGEBRA -->
+    <section id="linalg" class="section">
+      <h2>8. Linear Algebra with NumPy</h2>
+      <p>
+        Most linear-algebra routines live in the <code>np.linalg</code> submodule.
+        Matrix multiplication is also available via the <code>@</code> operator (Python 3.5+).
+      </p>
+
+      <h3>Matrix multiplication</h3>
+      <pre><code>A = np.array([[<span class="number">1</span>, <span class="number">2</span>],
+              [<span class="number">3</span>, <span class="number">4</span>]])
+B = np.array([[<span class="number">5</span>, <span class="number">6</span>],
+              [<span class="number">7</span>, <span class="number">8</span>]])
+
+<span class="comment"># Three equivalent ways:</span>
+print(A @ B)               <span class="comment"># preferred modern syntax</span>
+print(np.matmul(A, B))
+print(np.dot(A, B))
+
+<span class="comment"># Result:</span>
+<span class="comment"># [[19 22]</span>
+<span class="comment">#  [43 50]]</span></code></pre>
+
+      <div class="warning">
+        <code>*</code> is <strong>element-wise</strong> multiplication.<br>
+        <code>@</code> (or <code>np.dot</code> / <code>np.matmul</code>) is matrix multiplication.
+      </div>
+
+      <h3>Transpose</h3>
+      <pre><code>print(A.T)
+<span class="comment"># [[1 3]</span>
+<span class="comment">#  [2 4]]</span></code></pre>
+
+      <h3>Determinant &amp; Inverse</h3>
+      <pre><code>print(np.linalg.det(A))          <span class="comment"># -2.0</span>
+print(np.linalg.inv(A))
+<span class="comment"># [[-2.   1. ]</span>
+<span class="comment">#  [ 1.5 -0.5]]</span>
+
+<span class="comment"># Check: A @ inv(A) ≈ Identity</span>
+print(A @ np.linalg.inv(A))</code></pre>
+
+      <h3>Solving linear systems  Ax = b</h3>
+      <pre><code><span class="comment"># 2x + y = 5</span>
+<span class="comment">#  x + 3y = 7</span>
+A = np.array([[<span class="number">2</span>, <span class="number">1</span>],
+              [<span class="number">1</span>, <span class="number">3</span>]], dtype=float)
+b = np.array([<span class="number">5</span>, <span class="number">7</span>], dtype=float)
+
+x = np.linalg.solve(A, b)
+print(x)                     <span class="comment"># [1.6 1.8]</span>
+
+<span class="comment"># Verify</span>
+print(A @ x)                 <span class="comment"># [5. 7.]</span></code></pre>
+      <div class="tip">
+        Prefer <code>np.linalg.solve</code> over computing the inverse explicitly — it is faster and numerically more stable.
+      </div>
+
+      <h3>Eigenvalues &amp; Eigenvectors</h3>
+      <pre><code>A = np.array([[<span class="number">4</span>, <span class="number">-2</span>],
+              [<span class="number">1</span>,  <span class="number">1</span>]], dtype=float)
+
+eigvals, eigvecs = np.linalg.eig(A)
+print(<span class="string">"Eigenvalues:"</span>, eigvals)
+print(<span class="string">"Eigenvectors (columns):"</span>)
+print(eigvecs)
+
+<span class="comment"># Check A v = λ v for first pair</span>
+v = eigvecs[:, <span class="number">0</span>]
+λ = eigvals[<span class="number">0</span>]
+print(A @ v)
+print(λ * v)</code></pre>
+
+      <h3>Norms</h3>
+      <pre><code>v = np.array([<span class="number">3.</span>, <span class="number">4.</span>])
+print(np.linalg.norm(v))           <span class="comment"># 5.0  (Euclidean / L2)</span>
+print(np.linalg.norm(v, ord=<span class="number">1</span>))    <span class="comment"># 7.0  (L1)</span>
+print(np.linalg.norm(v, ord=np.inf)) <span class="comment"># 4.0 (max)</span>
+
+M = np.array([[<span class="number">1</span>, <span class="number">2</span>], [<span class="number">3</span>, <span class="number">4</span>]], dtype=float)
+print(np.linalg.norm(M, ord=<span class="string">'fro'</span>))  <span class="comment"># Frobenius norm</span></code></pre>
+
+      <h3>Other useful linear-algebra functions</h3>
+      <table>
+        <thead>
+          <tr><th>Function</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>np.linalg.matrix_rank(A)</code></td><td>Rank of a matrix</td></tr>
+          <tr><td><code>np.linalg.qr(A)</code></td><td>QR decomposition</td></tr>
+          <tr><td><code>np.linalg.svd(A)</code></td><td>Singular Value Decomposition</td></tr>
+          <tr><td><code>np.linalg.cholesky(A)</code></td><td>Cholesky decomposition (A must be SPD)</td></tr>
+          <tr><td><code>np.trace(A)</code></td><td>Sum of diagonal elements</td></tr>
+          <tr><td><code>np.diag(v)</code></td><td>Create diagonal matrix / extract diagonal</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 9. WORKED EXAMPLES -->
+    <section id="examples" class="section">
+      <h2>9. Worked Examples</h2>
+
+      <h3>Example 1 — Distance between points</h3>
+      <pre><code>P = np.array([[<span class="number">0</span>, <span class="number">0</span>],
+              [<span class="number">3</span>, <span class="number">4</span>],
+              [<span class="number">1</span>, <span class="number">1</span>]])
+
+<span class="comment"># Euclidean distances from origin</span>
+dists = np.linalg.norm(P, axis=<span class="number">1</span>)
+print(dists)   <span class="comment"># [0.  5.  1.414...]</span></code></pre>
+
+      <h3>Example 2 — Least-squares line fit</h3>
+      <pre><code><span class="comment"># Fit y = mx + c to noisy data</span>
+x = np.array([<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>], dtype=float)
+y = np.array([<span class="number">1.1</span>, <span class="number">1.9</span>, <span class="number">3.2</span>, <span class="number">4.0</span>, <span class="number">5.1</span>])
+
+<span class="comment"># Design matrix [x  1]</span>
+A = np.column_stack((x, np.ones_like(x)))
+m, c = np.linalg.lstsq(A, y, rcond=<span class="keyword">None</span>)[<span class="number">0</span>]
+print(<span class="string">f"slope = {m:.3f}, intercept = {c:.3f}"</span>)</code></pre>
+
+      <h3>Example 3 — Simple PCA (via SVD)</h3>
+      <pre><code><span class="comment"># Center the data</span>
+X = np.array([[<span class="number">2.5</span>, <span class="number">2.4</span>],
+              [<span class="number">0.5</span>, <span class="number">0.7</span>],
+              [<span class="number">2.2</span>, <span class="number">2.9</span>],
+              [<span class="number">1.9</span>, <span class="number">2.2</span>],
+              [<span class="number">3.1</span>, <span class="number">3.0</span>]])
+X_centered = X - X.mean(axis=<span class="number">0</span>)
+
+<span class="comment"># SVD</span>
+U, S, Vt = np.linalg.svd(X_centered, full_matrices=<span class="keyword">False</span>)
+
+<span class="comment"># First principal component</span>
+pc1 = Vt[<span class="number">0</span>]
+print(<span class="string">"First principal direction:"</span>, pc1)
+
+<span class="comment"># Project data onto PC1</span>
+proj = X_centered @ pc1
+print(<span class="string">"Projections:"</span>, proj)</code></pre>
+
+      <h3>Example 4 — Rotation matrix</h3>
+      <pre><code><span class="keyword">def</span> <span class="func">rotation_matrix</span>(theta_deg):
+    θ = np.deg2rad(theta_deg)
+    <span class="keyword">return</span> np.array([[np.cos(θ), -np.sin(θ)],
+                     [np.sin(θ),  np.cos(θ)]])
+
+R = rotation_matrix(<span class="number">90</span>)
+v = np.array([<span class="number">1.</span>, <span class="number">0.</span>])
+print(R @ v)   <span class="comment"># ≈ [0. 1.]  (rotated 90° counterclockwise)</span></code></pre>
+    </section>
+
+    <!-- 10. CHEAT SHEET -->
+    <section id="cheatsheet" class="section">
+      <h2>10. Quick Cheat Sheet</h2>
+      <table>
+        <thead>
+          <tr><th>Task</th><th>Code</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Create array</td><td><code>np.array([...])</code></td></tr>
+          <tr><td>Zeros / Ones</td><td><code>np.zeros(shape)</code>, <code>np.ones(shape)</code></td></tr>
+          <tr><td>Range</td><td><code>np.arange(start, stop, step)</code></td></tr>
+          <tr><td>Linspace</td><td><code>np.linspace(start, stop, num)</code></td></tr>
+          <tr><td>Reshape</td><td><code>a.reshape(new_shape)</code></td></tr>
+          <tr><td>Matrix product</td><td><code>A @ B</code></td></tr>
+          <tr><td>Element-wise product</td><td><code>A * B</code></td></tr>
+          <tr><td>Transpose</td><td><code>A.T</code></td></tr>
+          <tr><td>Inverse</td><td><code>np.linalg.inv(A)</code></td></tr>
+          <tr><td>Solve Ax = b</td><td><code>np.linalg.solve(A, b)</code></td></tr>
+          <tr><td>Eigen</td><td><code>np.linalg.eig(A)</code></td></tr>
+          <tr><td>Norm</td><td><code>np.linalg.norm(v)</code></td></tr>
+          <tr><td>Concatenate</td><td><code>np.concatenate([a, b], axis=0)</code></td></tr>
+          <tr><td>Stack columns</td><td><code>np.column_stack([a, b])</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      <p>NumPy Tutorial — Arrays &amp; Linear Algebra</p>
+      <p style="margin-top:0.4rem; font-size:0.85rem;">
+        Open this file in any browser. Copy the code snippets into a Python environment with NumPy installed.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
